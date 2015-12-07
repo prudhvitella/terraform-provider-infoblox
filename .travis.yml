@@ -5,7 +5,7 @@ install:
   - make updatedeps
 script:
 
-- go get -u github.com/golang/lint/golint
+  - go get -u github.com/golang/lint/golint
   - golint ./...
   - make test
   - test `gofmt -l . | wc -l` = 0
