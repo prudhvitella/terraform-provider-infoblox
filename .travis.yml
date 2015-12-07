@@ -1,11 +1,21 @@
 language: go
-
 go:
   - 1.5
-
 install:
+  - make updatedeps
+script:
+
+- go get -u github.com/golang/lint/golint
+  - golint ./...
+  - make test
+  - test `gofmt -l . | wc -l` = 0
+before_install:
   - go get github.com/mitchellh/gox
-  - go get
-  - gox
-  - find .
-  - go test ./...
+  - gox -build-toolchain
+  - go get github.com/tcnksm/ghr
+after_success:
+  - make ci
+  - ghr --username ojongerius --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
+branches:
+  only:
+    - master
