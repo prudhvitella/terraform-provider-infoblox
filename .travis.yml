@@ -14,7 +14,7 @@ before_install:
   - go get github.com/tcnksm/ghr
 after_success:
   - make ci
-  - ghr --username ojongerius --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
+  - ghr --username prudhvitella --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
 branches:
   only:
     - master
