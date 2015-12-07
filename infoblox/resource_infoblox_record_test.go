@@ -159,6 +159,8 @@ func testAccCheckInfobloxRecordDestroy(s *terraform.State) error {
 			_, err = client.GetRecordAAAA(rs.Primary.ID)
 		case "CNAME":
 			_, err = client.GetRecordCname(rs.Primary.ID)
+		default:
+			return fmt.Errorf("testAccCheckInfobloxRecordDestroy: unknown type")
 		}
 
 		if err == nil {

@@ -6,6 +6,7 @@ import (
 	"github.com/fanatic/go-infoblox"
 )
 
+// Config holds authentication details of Infoblox
 type Config struct {
 	Host       string
 	Password   string
@@ -14,7 +15,7 @@ type Config struct {
 	UseCookies bool
 }
 
-// Client() returns a new client for accessing Infoblox.
+// Client returns a new client for accessing Infoblox.
 func (c *Config) Client() (*infoblox.Client, error) {
 	client := infoblox.NewClient(c.Host, c.Username, c.Password, c.SSLVerify, c.UseCookies)
 

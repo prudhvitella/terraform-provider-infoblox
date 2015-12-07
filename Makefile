@@ -1,4 +1,4 @@
-TEST?=./datadog
+TEST?=./infoblox
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
 
 default: test
@@ -13,7 +13,7 @@ ci: generate
 updatedeps:
 	go list ./... \
         | xargs go list -f '{{join .Deps "\n"}}' \
-		| grep -v terraform-provider-datadog \
+		| grep -v terraform-provider-infoblox \
         | grep -v '/internal/' \
         | sort -u \
         | xargs go get -f -u -v
