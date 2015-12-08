@@ -7,7 +7,8 @@ The Inflbox provider is used to interact with the
 resources supported by Infoblox. The provider needs to be configured
 with the proper credentials before it can be used.
 
-Use the navigation to the left to read about the available resources.
+##  Download
+Download builds for Darwin, Linux and Windows from the [releases page](https://github.com/prudhvitella/terraform-provider-infoblox/releases/).
 
 ## Example Usage
 
