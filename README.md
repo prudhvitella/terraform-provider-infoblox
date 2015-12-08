@@ -1,5 +1,7 @@
+[![Build
+status](https://travis-ci.org/prudhvitella/terraform-provider-infoblox.svg)](https://travis-ci.org/prudhvitella/terraform-provider-infoblox)
 
-# Infoblox Provider
+# [Terraform](https://github.com/hashicorp/terraform) Infoblox Provider
 
 The Inflbox provider is used to interact with the
 resources supported by Infoblox. The provider needs to be configured
