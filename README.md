@@ -92,34 +92,3 @@ The following attributes are exported:
 * `name` - The name of the record
 * `type` - The type of the record
 * `ttl` - The TTL of the record
-
-# infoblox\_ip
-
-Queries the next available IP address from a network and returns it in a computed variable
-that can be used by the infoblox_record resource.
-
-## Example Usage
-
-```
-# Acquire the next available IP from a network CIDR
-#it will create a variable called "ipaddress"
-resource "infoblox_ip" "theIPAddress" {
-	cidr = "10.0.0.0/24"
-}
-
-
-# Add a record to the domain
-resource "infoblox_record" "foobar" {
-	value = "${infoblox_ip.theIPAddress.ipaddress}"
-	name = "terraform"
-	domain = "mydomain.com"
-	type = "A"
-	ttl = 3600
-}
-```
-
-## Argument Reference
-
-The following arguments are supported:
-
-* `cidr` - (Required) The network to search for - example 10.0.0.0/24
