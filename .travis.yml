@@ -13,6 +13,7 @@ before_install:
   - go get github.com/mitchellh/gox
   - go get github.com/tcnksm/ghr
   - go get github.com/davecgh/go-spew/spew
+  - go get github.com/hashicorp/logutils
 after_success:
   - make ci
   - ghr --username prudhvitella --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
