@@ -12,7 +12,7 @@ script:
 before_install:
   - go get github.com/mitchellh/gox
   - go get github.com/tcnksm/ghr
-  - go get github.com/davecgh/go-spew
+  - go get github.com/davecgh/go-spew/spew
 after_success:
   - make ci
   - ghr --username prudhvitella --token $GITHUB_TOKEN --replace --prerelease --debug pre-release dist/
