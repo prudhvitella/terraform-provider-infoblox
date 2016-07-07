@@ -7,7 +7,7 @@ terraform.tfstate
 bin/
 modules-dev/
 pkg/
-vendor/
+vendor/*/
 website/.vagrant
 website/build
 website/node_modules

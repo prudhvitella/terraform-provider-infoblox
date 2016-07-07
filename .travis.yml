@@ -1,6 +1,6 @@
 language: go
 go:
-  - 1.5
+  - 1.6.2
 install:
   - make updatedeps
 script:
@@ -14,6 +14,8 @@ before_install:
   - go get github.com/tcnksm/ghr
   - go get github.com/davecgh/go-spew/spew
   - go get github.com/hashicorp/logutils
+  - go get -u github.com/kardianos/govendor
+  - govendor sync
 after_success:
   - make ci
   - ghr --username prudhvitella --token $GITHUB_TOKEN --delete --prerelease --debug pre-release dist/
