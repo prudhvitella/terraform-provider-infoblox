@@ -56,6 +56,6 @@ vet:
 # generate runs `go generate` to build the dynamically generated
 # source files.
 generate:
-	go generate ./...
+	go generate $$(go list ./... | grep -v /vendor/)
 
 .PHONY: bin default generate test updatedeps vet
