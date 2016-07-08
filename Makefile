@@ -9,15 +9,6 @@ bin: fmtcheck generate
 ci: fmtcheck generate
 		@sh -c "'$(CURDIR)/scripts/build-ci.sh'"
 
-# get dependencies
-updatedeps:
-	go list ./... \
-        | xargs go list -f '{{join .Deps "\n"}}' \
-		| grep -v terraform-provider-infoblox \
-        | grep -v '/internal/' \
-        | sort -u \
-        | xargs go get -f -u -v
-
 # test runs the unit tests and vets the code
 test: fmtcheck generate
 	TF_ACC= go test $(TEST) $(TESTARGS) -timeout=30s -parallel=4
