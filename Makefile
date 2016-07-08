@@ -1,12 +1,12 @@
-TEST?=./infoblox
+TEST?=$$(go list ./... | grep -v /vendor/)
 VETARGS?=-asmdecl -atomic -bool -buildtags -copylocks -methods -nilfunc -printf -rangeloops -shift -structtags -unsafeptr
 
 default: test
 
-bin: generate
+bin: fmtcheck generate
 	@sh -c "'$(CURDIR)/scripts/build.sh'"
 
-ci: generate
+ci: fmtcheck generate
 		@sh -c "'$(CURDIR)/scripts/build-ci.sh'"
 
 # get dependencies
@@ -19,16 +19,15 @@ updatedeps:
         | xargs go get -f -u -v
 
 # test runs the unit tests and vets the code
-test: generate
+test: fmtcheck generate
 	TF_ACC= go test $(TEST) $(TESTARGS) -timeout=30s -parallel=4
-	@$(MAKE) vet
 
 # testacc runs acceptance tests
-testacc: generate
+testacc: fmtcheck generate
 	TF_ACC=1 go test $(TEST) -v $(TESTARGS) -timeout 90m
 
 # testrace runs the race checker
-testrace: generate
+testrace: fmtcheck generate
 	TF_ACC= go test -race $(TEST) $(TESTARGS)
 
 cover:
@@ -58,4 +57,10 @@ vet:
 generate:
 	go generate $$(go list ./... | grep -v /vendor/)
 
-.PHONY: bin default generate test updatedeps vet
+fmt:
+	gofmt -w .
+
+fmtcheck:
+	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
+
+.PHONY: bin default generate test updatedeps vet fmt fmtcheck
