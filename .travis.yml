@@ -2,7 +2,7 @@ language: go
 go:
   - 1.6.2
 install:
-  - make updatedeps
+  - echo noop
 script:
 
   - go get -u github.com/golang/lint/golint
