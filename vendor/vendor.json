@@ -153,10 +153,9 @@
 			"revisionTime": "2015-12-01T22:57:18Z"
 		},
 		{
-			"checksumSHA1": "NsaU0OlPH7r0L1UJR0CdneQbujQ=",
+      "comment": "v1.18.0",
 			"path": "github.com/go-ini/ini",
-			"revision": "615a8ef3914d991ec5114617a43aecd5980c7286",
-			"revisionTime": "2016-07-08T16:52:03Z"
+			"revision": "cf53f9204df4fbdd7ec4164b57fa6184ba168292"
 		},
 		{
 			"checksumSHA1": "cdOCt0Yb+hdErz8NAQqayxPmRsY=",
