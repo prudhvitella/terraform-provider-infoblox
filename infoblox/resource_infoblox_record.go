@@ -42,13 +42,12 @@ func resourceInfobloxRecord() *schema.Resource {
 			"ttl": &schema.Schema{
 				Type:     schema.TypeInt,
 				Optional: true,
-				//Default:  3600,
 			},
 		},
 	}
 }
 
-func createHostJson(d *schema.ResourceData) map[string]interface{} {
+func createHostJson(d *schema.ResourceData) (map[string]interface{}, error) {
 	body := make(map[string]interface{})
 	if attr, ok := d.GetOk("value"); ok {
 		host_obj := make(map[string]string)
@@ -67,11 +66,11 @@ func createHostJson(d *schema.ResourceData) map[string]interface{} {
 	}
 	body["name"] = name
 
-	if attr, ok := d.GetOk("ttl"); ok {
-		body["ttl"] = attr.(int)
+	if _, ok := d.GetOk("ttl"); ok {
+		return nil, fmt.Errorf("Provider does not support TTL with HOST records.\nFeel free to poke around the code and fix it.")
 	}
 
-	return body
+	return body, nil
 }
 
 func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) error {
@@ -104,10 +103,15 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 		recID, err = client.RecordCname().Create(record, opts, nil)
 	case "HOST":
+		var body map[string]interface{}
+		body, err = createHostJson(d)
+		if err != nil {
+			return err
+		}
 		opts := &infoblox.Options{
 			ReturnFields: []string{"ttl", "ipv4addrs", "name"},
 		}
-		recID, err = client.RecordHost().Create(url.Values{}, opts, createHostJson(d))
+		recID, err = client.RecordHost().Create(url.Values{}, opts, body)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordCreate: unknown type")
 	}
@@ -245,10 +249,15 @@ func resourceInfobloxRecordUpdate(d *schema.ResourceData, meta interface{}) erro
 		}
 		recID, updateErr = client.RecordCnameObject(d.Id()).Update(record, opts, nil)
 	case "HOST":
+		var body map[string]interface{}
+		body, err = createHostJson(d)
+		if err != nil {
+			return err
+		}
 		opts := &infoblox.Options{
 			ReturnFields: []string{"ttl", "ipv4addrs", "name"},
 		}
-		recID, err = client.RecordHostObject(d.Id()).Update(url.Values{}, opts, createHostJson(d))
+		recID, err = client.RecordHostObject(d.Id()).Update(url.Values{}, opts, body)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordUpdate: unknown type")
 	}
