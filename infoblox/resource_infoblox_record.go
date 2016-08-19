@@ -40,12 +40,41 @@ func resourceInfobloxRecord() *schema.Resource {
 			},
 
 			"ttl": &schema.Schema{
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  "3600",
+				//Default:  3600,
 			},
 		},
 	}
+}
+
+func createHostRecord(d *schema.ResourceData, client *infoblox.Client) (string, error) {
+	body := make(map[string]interface{})
+	if attr, ok := d.GetOk("value"); ok {
+		host_obj := make(map[string]string)
+		host_obj["ipv4addr"] = attr.(string)
+		// Map<String, String>[] var = {host_obj}
+		// body["ipv4addrs"] = var
+		body["ipv4addrs"] = [1]map[string]string{host_obj}
+	}
+
+	var name string
+	if attr, ok := d.GetOk("name"); ok {
+		name = attr.(string)
+	}
+	if attr, ok := d.GetOk("domain"); ok {
+		name = strings.Join([]string{name, attr.(string)}, ".")
+	}
+	body["name"] = name
+
+	if attr, ok := d.GetOk("ttl"); ok {
+		body["ttl"] = attr.(int)
+	}
+
+	opts := &infoblox.Options{
+		ReturnFields: []string{"ttl", "ipv4addrs", "name"},
+	}
+	return client.RecordHost().Create(url.Values{}, opts, body)
 }
 
 func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) error {
@@ -77,6 +106,8 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 			ReturnFields: []string{"ttl", "canonical", "name"},
 		}
 		recID, err = client.RecordCname().Create(record, opts, nil)
+	case "HOST":
+		recID, err = createHostRecord(d, client)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordCreate: unknown type")
 	}
@@ -140,8 +171,22 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("name", fqdn[0])
 		d.Set("domain", strings.Join(fqdn[1:], "."))
 		d.Set("ttl", rec.Ttl)
+	case "HOST":
+		opts := &infoblox.Options{
+			ReturnFields: []string{"ttl", "ipv4addrs", "name"},
+		}
+		rec, err := client.GetRecordHost(d.Id(), opts)
+		if err != nil {
+			return fmt.Errorf("Couldn't find Infoblox Host record: %s", err)
+		}
+		d.Set("value", rec.Ipv4Addrs[0].Ipv4Addr)
+		d.Set("type", "HOST")
+		fqdn := strings.Split(rec.Name, ".")
+		d.Set("name", fqdn[0])
+		d.Set("domain", strings.Join(fqdn[1:], "."))
+		d.Set("ttl", rec.Ttl)
 	default:
-		return fmt.Errorf("resourceInfobloxRecordRead: unknown type")
+		return fmt.Errorf("resourceInfobloxRecordRead: unknown type: %v", d.Get("type"))
 	}
 
 	return nil
@@ -280,6 +325,7 @@ func getAll(d *schema.ResourceData, record url.Values) error {
 		record.Set("ipv6addr", value)
 	case "CNAME":
 		record.Set("canonical", value)
+	case "HOST":
 	default:
 		return fmt.Errorf("getAll: type not found")
 	}
