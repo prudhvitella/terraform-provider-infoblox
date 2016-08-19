@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/hashicorp/terraform/plugin"
-	"./infoblox"
+	"github.com/prudhvitella/terraform-provider-infoblox/infoblox"
 )
 
 func main() {
