@@ -1,12 +1,15 @@
 package infoblox
 
 import (
+	"log"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
 )
 
 //Provider returns a terraform.ResourceProvider.
 func Provider() terraform.ResourceProvider {
+	log.Printf("Spooky Provider() func")
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"username": &schema.Schema{
@@ -51,6 +54,7 @@ func Provider() terraform.ResourceProvider {
 }
 
 func provideConfigure(d *schema.ResourceData) (interface{}, error) {
+	log.Printf("Spooky provideConfigure func")
 	config := Config{
 		Username:   d.Get("username").(string),
 		Password:   d.Get("password").(string),

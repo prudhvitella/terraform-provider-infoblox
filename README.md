@@ -83,6 +83,10 @@ The type of record being created affects the interpretation of the `value` argum
 
 * `value` is the IPv6 address
 
+#### HOST Record
+
+* `value` is a single IPv4 address to put in ipv4addrs
+
 ## Attributes Reference
 
 The following attributes are exported:

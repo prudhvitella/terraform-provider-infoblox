@@ -40,12 +40,37 @@ func resourceInfobloxRecord() *schema.Resource {
 			},
 
 			"ttl": &schema.Schema{
-				Type:     schema.TypeString,
+				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  "3600",
 			},
 		},
 	}
+}
+
+func createHostJson(d *schema.ResourceData) (map[string]interface{}, error) {
+	body := make(map[string]interface{})
+	if attr, ok := d.GetOk("value"); ok {
+		host_obj := make(map[string]string)
+		host_obj["ipv4addr"] = attr.(string)
+		// Map<String, String>[] var = {host_obj}
+		// body["ipv4addrs"] = var
+		body["ipv4addrs"] = [1]map[string]string{host_obj}
+	}
+
+	var name string
+	if attr, ok := d.GetOk("name"); ok {
+		name = attr.(string)
+	}
+	if attr, ok := d.GetOk("domain"); ok {
+		name = strings.Join([]string{name, attr.(string)}, ".")
+	}
+	body["name"] = name
+
+	if _, ok := d.GetOk("ttl"); ok {
+		return nil, fmt.Errorf("Provider does not support TTL with HOST records.\nFeel free to poke around the code and fix it.")
+	}
+
+	return body, nil
 }
 
 func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) error {
@@ -77,6 +102,16 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 			ReturnFields: []string{"ttl", "canonical", "name"},
 		}
 		recID, err = client.RecordCname().Create(record, opts, nil)
+	case "HOST":
+		var body map[string]interface{}
+		body, err = createHostJson(d)
+		if err != nil {
+			return err
+		}
+		opts := &infoblox.Options{
+			ReturnFields: []string{"ttl", "ipv4addrs", "name"},
+		}
+		recID, err = client.RecordHost().Create(url.Values{}, opts, body)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordCreate: unknown type")
 	}
@@ -97,7 +132,10 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 
 	switch strings.ToUpper(d.Get("type").(string)) {
 	case "A":
-		rec, err := client.GetRecordA(d.Id())
+		opts := &infoblox.Options{
+			ReturnFields: []string{"ttl", "ipv4addr", "name"},
+		}
+		rec, err := client.GetRecordA(d.Id(), opts)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox A record: %s", err)
 		}
@@ -109,7 +147,10 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("ttl", rec.Ttl)
 
 	case "AAAA":
-		rec, err := client.GetRecordAAAA(d.Id())
+		opts := &infoblox.Options{
+			ReturnFields: []string{"ttl", "ipv6addr", "name"},
+		}
+		rec, err := client.GetRecordAAAA(d.Id(), opts)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox AAAA record: %s", err)
 		}
@@ -121,18 +162,35 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("ttl", rec.Ttl)
 
 	case "CNAME":
-		rec, err := client.GetRecordCname(d.Id())
+		opts := &infoblox.Options{
+			ReturnFields: []string{"ttl", "canoncial", "name"},
+		}
+		rec, err := client.GetRecordCname(d.Id(), opts)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox CNAME record: %s", err)
 		}
-		d.Set("value", rec.Canoncial)
+		d.Set("value", rec.Canonical)
 		d.Set("type", "CNAME")
 		fqdn := strings.Split(rec.Name, ".")
 		d.Set("name", fqdn[0])
 		d.Set("domain", strings.Join(fqdn[1:], "."))
 		d.Set("ttl", rec.Ttl)
+	case "HOST":
+		opts := &infoblox.Options{
+			ReturnFields: []string{"ttl", "ipv4addrs", "name"},
+		}
+		rec, err := client.GetRecordHost(d.Id(), opts)
+		if err != nil {
+			return fmt.Errorf("Couldn't find Infoblox Host record: %s", err)
+		}
+		d.Set("value", rec.Ipv4Addrs[0].Ipv4Addr)
+		d.Set("type", "HOST")
+		fqdn := strings.Split(rec.Name, ".")
+		d.Set("name", fqdn[0])
+		d.Set("domain", strings.Join(fqdn[1:], "."))
+		d.Set("ttl", rec.Ttl)
 	default:
-		return fmt.Errorf("resourceInfobloxRecordRead: unknown type")
+		return fmt.Errorf("resourceInfobloxRecordRead: unknown type: %v", d.Get("type"))
 	}
 
 	return nil
@@ -144,11 +202,21 @@ func resourceInfobloxRecordUpdate(d *schema.ResourceData, meta interface{}) erro
 	var err, updateErr error
 	switch strings.ToUpper(d.Get("type").(string)) {
 	case "A":
-		_, err = client.GetRecordA(d.Id())
+		// TODO: Ensure nil works.
+		// Passing nil as the return options because we aren't using the returned object, just ensuring there is no error.
+		_, err = client.GetRecordA(d.Id(), nil)
 	case "AAAA":
-		_, err = client.GetRecordAAAA(d.Id())
+		// TODO: Ensure nil works.
+		// Passing nil as the return options because we aren't using the returned object, just ensuring there is no error.
+		_, err = client.GetRecordAAAA(d.Id(), nil)
 	case "CNAME":
-		_, err = client.GetRecordCname(d.Id())
+		// TODO: Ensure nil works.
+		// Passing nil as the return options because we aren't using the returned object, just ensuring there is no error.
+		_, err = client.GetRecordCname(d.Id(), nil)
+	case "HOST":
+		// TODO: Ensure nil works.
+		// Passing nil as the return options because we aren't using the returned object, just ensuring there is no error.
+		_, err = client.GetRecordHost(d.Id(), nil)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordUpdate: unknown type")
 	}
@@ -169,17 +237,27 @@ func resourceInfobloxRecordUpdate(d *schema.ResourceData, meta interface{}) erro
 		opts := &infoblox.Options{
 			ReturnFields: []string{"ttl", "ipv4addr", "name"},
 		}
-		recID, updateErr = client.RecordAObject(d.Id()).Update(record, opts)
+		recID, updateErr = client.RecordAObject(d.Id()).Update(record, opts, nil)
 	case "AAAA":
 		opts := &infoblox.Options{
 			ReturnFields: []string{"ttl", "ipv6addr", "name"},
 		}
-		recID, updateErr = client.RecordAAAAObject(d.Id()).Update(record, opts)
+		recID, updateErr = client.RecordAAAAObject(d.Id()).Update(record, opts, nil)
 	case "CNAME":
 		opts := &infoblox.Options{
 			ReturnFields: []string{"ttl", "canonical", "name"},
 		}
-		recID, updateErr = client.RecordCnameObject(d.Id()).Update(record, opts)
+		recID, updateErr = client.RecordCnameObject(d.Id()).Update(record, opts, nil)
+	case "HOST":
+		var body map[string]interface{}
+		body, err = createHostJson(d)
+		if err != nil {
+			return err
+		}
+		opts := &infoblox.Options{
+			ReturnFields: []string{"ttl", "ipv4addrs", "name"},
+		}
+		recID, err = client.RecordHostObject(d.Id()).Update(url.Values{}, opts, body)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordUpdate: unknown type")
 	}
@@ -199,7 +277,9 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] Deleting Infoblox Record: %s, %s", d.Get("name").(string), d.Id())
 	switch strings.ToUpper(d.Get("type").(string)) {
 	case "A":
-		_, err := client.GetRecordA(d.Id())
+		// TODO: Ensure nil works.
+		// Passing nil as the return options because we aren't using the returned object, just ensuring there is no error.
+		_, err := client.GetRecordA(d.Id(), nil)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox A record: %s", err)
 		}
@@ -209,7 +289,9 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("Error deleting Infoblox A Record: %s", err)
 		}
 	case "AAAA":
-		_, err := client.GetRecordAAAA(d.Id())
+		// TODO: Ensure nil works.
+		// Passing nil as the return options because we aren't using the returned object, just ensuring there is no error.
+		_, err := client.GetRecordAAAA(d.Id(), nil)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox AAAA record: %s", err)
 		}
@@ -219,7 +301,9 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("Error deleting Infoblox AAAA Record: %s", err)
 		}
 	case "CNAME":
-		_, err := client.GetRecordCname(d.Id())
+		// TODO: Ensure nil works.
+		// Passing nil as the return options because we aren't using the returned object, just ensuring there is no error.
+		_, err := client.GetRecordCname(d.Id(), nil)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox CNAME record: %s", err)
 		}
@@ -227,6 +311,18 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 		deleteErr := client.RecordCnameObject(d.Id()).Delete(nil)
 		if deleteErr != nil {
 			return fmt.Errorf("Error deleting Infoblox CNAME Record: %s", err)
+		}
+	case "HOST":
+		// TODO: Ensure nil works.
+		// Passing nil as the return options because we aren't using the returned object, just ensuring there is no error.
+		_, err := client.GetRecordHost(d.Id(), nil)
+		if err != nil {
+			return fmt.Errorf("Couldn't find Infoblox HOST record: %s", err)
+		}
+
+		deleteErr := client.RecordHostObject(d.Id()).Delete(nil)
+		if deleteErr != nil {
+			return fmt.Errorf("Error deleting Infoblox HOST Record: %s", err)
 		}
 	default:
 		return fmt.Errorf("resourceInfobloxRecordDelete: unknown type")
@@ -259,6 +355,7 @@ func getAll(d *schema.ResourceData, record url.Values) error {
 		record.Set("ipv6addr", value)
 	case "CNAME":
 		record.Set("canonical", value)
+	case "HOST":
 	default:
 		return fmt.Errorf("getAll: type not found")
 	}
