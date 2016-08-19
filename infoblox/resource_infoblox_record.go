@@ -74,13 +74,6 @@ func createHostJson(d *schema.ResourceData) map[string]interface{} {
 	return body
 }
 
-func createHostRecord(d *schema.ResourceData, client *infoblox.Client) (string, error) {
-	opts := &infoblox.Options{
-		ReturnFields: []string{"ttl", "ipv4addrs", "name"},
-	}
-	return client.RecordHost().Create(url.Values{}, opts, createHostJson(d))
-}
-
 func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
@@ -111,7 +104,10 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 		}
 		recID, err = client.RecordCname().Create(record, opts, nil)
 	case "HOST":
-		recID, err = createHostRecord(d, client)
+		opts := &infoblox.Options{
+			ReturnFields: []string{"ttl", "ipv4addrs", "name"},
+		}
+		recID, err = client.RecordHost().Create(url.Values{}, opts, createHostJson(d))
 	default:
 		return fmt.Errorf("resourceInfobloxRecordCreate: unknown type")
 	}
@@ -248,6 +244,11 @@ func resourceInfobloxRecordUpdate(d *schema.ResourceData, meta interface{}) erro
 			ReturnFields: []string{"ttl", "canonical", "name"},
 		}
 		recID, updateErr = client.RecordCnameObject(d.Id()).Update(record, opts, nil)
+	case "HOST":
+		opts := &infoblox.Options{
+			ReturnFields: []string{"ttl", "ipv4addrs", "name"},
+		}
+		recID, err = client.RecordHostObject(d.Id()).Update(url.Values{}, opts, createHostJson(d))
 	default:
 		return fmt.Errorf("resourceInfobloxRecordUpdate: unknown type")
 	}
