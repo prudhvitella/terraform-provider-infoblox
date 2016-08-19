@@ -294,6 +294,18 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 		if deleteErr != nil {
 			return fmt.Errorf("Error deleting Infoblox CNAME Record: %s", err)
 		}
+	case "HOST":
+		// TODO: Ensure nil works.
+		// Passing nil as the return options because we aren't using the returned object, just ensuring there is no error.
+		_, err := client.GetRecordHost(d.Id(), nil)
+		if err != nil {
+			return fmt.Errorf("Couldn't find Infoblox HOST record: %s", err)
+		}
+
+		deleteErr := client.RecordHostObject(d.Id()).Delete(nil)
+		if deleteErr != nil {
+			return fmt.Errorf("Error deleting Infoblox HOST Record: %s", err)
+		}
 	default:
 		return fmt.Errorf("resourceInfobloxRecordDelete: unknown type")
 	}
