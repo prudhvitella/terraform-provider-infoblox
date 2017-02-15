@@ -97,7 +97,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 
 	switch strings.ToUpper(d.Get("type").(string)) {
 	case "A":
-		rec, err := client.GetRecordA(d.Id())
+		rec, err := client.GetRecordA(d.Id(), nil)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox A record: %s", err)
 		}
@@ -109,7 +109,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("ttl", rec.Ttl)
 
 	case "AAAA":
-		rec, err := client.GetRecordAAAA(d.Id())
+		rec, err := client.GetRecordAAAA(d.Id(), nil)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox AAAA record: %s", err)
 		}
@@ -121,11 +121,11 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("ttl", rec.Ttl)
 
 	case "CNAME":
-		rec, err := client.GetRecordCname(d.Id())
+		rec, err := client.GetRecordCname(d.Id(), nil)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox CNAME record: %s", err)
 		}
-		d.Set("value", rec.Canoncial)
+		d.Set("value", rec.Canonical)
 		d.Set("type", "CNAME")
 		fqdn := strings.Split(rec.Name, ".")
 		d.Set("name", fqdn[0])
@@ -144,11 +144,11 @@ func resourceInfobloxRecordUpdate(d *schema.ResourceData, meta interface{}) erro
 	var err, updateErr error
 	switch strings.ToUpper(d.Get("type").(string)) {
 	case "A":
-		_, err = client.GetRecordA(d.Id())
+		_, err = client.GetRecordA(d.Id(), nil)
 	case "AAAA":
-		_, err = client.GetRecordAAAA(d.Id())
+		_, err = client.GetRecordAAAA(d.Id(), nil)
 	case "CNAME":
-		_, err = client.GetRecordCname(d.Id())
+		_, err = client.GetRecordCname(d.Id(), nil)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordUpdate: unknown type")
 	}
@@ -169,17 +169,17 @@ func resourceInfobloxRecordUpdate(d *schema.ResourceData, meta interface{}) erro
 		opts := &infoblox.Options{
 			ReturnFields: []string{"ttl", "ipv4addr", "name"},
 		}
-		recID, updateErr = client.RecordAObject(d.Id()).Update(record, opts)
+		recID, updateErr = client.RecordAObject(d.Id()).Update(record, opts, nil)
 	case "AAAA":
 		opts := &infoblox.Options{
 			ReturnFields: []string{"ttl", "ipv6addr", "name"},
 		}
-		recID, updateErr = client.RecordAAAAObject(d.Id()).Update(record, opts)
+		recID, updateErr = client.RecordAAAAObject(d.Id()).Update(record, opts, nil)
 	case "CNAME":
 		opts := &infoblox.Options{
 			ReturnFields: []string{"ttl", "canonical", "name"},
 		}
-		recID, updateErr = client.RecordCnameObject(d.Id()).Update(record, opts)
+		recID, updateErr = client.RecordCnameObject(d.Id()).Update(record, opts, nil)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordUpdate: unknown type")
 	}
@@ -199,7 +199,7 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] Deleting Infoblox Record: %s, %s", d.Get("name").(string), d.Id())
 	switch strings.ToUpper(d.Get("type").(string)) {
 	case "A":
-		_, err := client.GetRecordA(d.Id())
+		_, err := client.GetRecordA(d.Id(), nil)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox A record: %s", err)
 		}
@@ -209,7 +209,7 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("Error deleting Infoblox A Record: %s", err)
 		}
 	case "AAAA":
-		_, err := client.GetRecordAAAA(d.Id())
+		_, err := client.GetRecordAAAA(d.Id(), nil)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox AAAA record: %s", err)
 		}
@@ -219,7 +219,7 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 			return fmt.Errorf("Error deleting Infoblox AAAA Record: %s", err)
 		}
 	case "CNAME":
-		_, err := client.GetRecordCname(d.Id())
+		_, err := client.GetRecordCname(d.Id(), nil)
 		if err != nil {
 			return fmt.Errorf("Couldn't find Infoblox CNAME record: %s", err)
 		}

@@ -154,11 +154,11 @@ func testAccCheckInfobloxRecordDestroy(s *terraform.State) error {
 
 		switch strings.ToUpper(rs.Primary.Attributes["type"]) {
 		case "A":
-			_, err = client.GetRecordA(rs.Primary.ID)
+			_, err = client.GetRecordA(rs.Primary.ID, nil)
 		case "AAAA":
-			_, err = client.GetRecordAAAA(rs.Primary.ID)
+			_, err = client.GetRecordAAAA(rs.Primary.ID, nil)
 		case "CNAME":
-			_, err = client.GetRecordCname(rs.Primary.ID)
+			_, err = client.GetRecordCname(rs.Primary.ID, nil)
 		default:
 			return fmt.Errorf("testAccCheckInfobloxRecordDestroy: unknown type")
 		}
@@ -184,7 +184,7 @@ func testAccCheckInfobloxRecordAExists(n string, record *infoblox.RecordAObject)
 		}
 
 		client := testAccProvider.Meta().(*infoblox.Client)
-		foundRecord, err := client.GetRecordA(rs.Primary.ID)
+		foundRecord, err := client.GetRecordA(rs.Primary.ID, nil)
 
 		if err != nil {
 			return err
@@ -213,7 +213,7 @@ func testAccCheckInfobloxRecordAAAAExists(n string, record *infoblox.RecordAAAAO
 		}
 
 		client := testAccProvider.Meta().(*infoblox.Client)
-		foundRecord, err := client.GetRecordAAAA(rs.Primary.ID)
+		foundRecord, err := client.GetRecordAAAA(rs.Primary.ID, nil)
 
 		if err != nil {
 			return err
@@ -242,7 +242,7 @@ func testAccCheckInfobloxRecordCnameExists(n string, record *infoblox.RecordCnam
 		}
 
 		client := testAccProvider.Meta().(*infoblox.Client)
-		foundRecord, err := client.GetRecordCname(rs.Primary.ID)
+		foundRecord, err := client.GetRecordCname(rs.Primary.ID, nil)
 
 		if err != nil {
 			return err
