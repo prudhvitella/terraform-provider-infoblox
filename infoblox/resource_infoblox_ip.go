@@ -72,6 +72,12 @@ func resourceInfobloxIP() *schema.Resource {
 				Computed: true,
 				Required: false,
 			},
+
+			"exclude": &schema.Schema{
+				Type:     schema.TypeSet,
+				Elem:     &schema.Schema{Type: schema.TypeString},
+				Optional: true,
+			},
 		},
 	}
 }
@@ -106,7 +112,18 @@ func resourceInfobloxIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	log.Print("[TRACE] invoking client.NetworkObject().NextAvailableIP")
 
-	ou, err := client.NetworkObject(out[0]["_ref"].(string)).NextAvailableIP(1, nil)
+	var excludedAddresses []string
+	if userExcludes := d.Get("exclude"); userExcludes != nil {
+		addresses := userExcludes.(*schema.Set).List()
+		for _, address := range addresses {
+			excludedAddresses = append(excludedAddresses, address.(string))
+		}
+	}
+
+	log.Printf("[TRACE] Excluding Addresses = %v", excludedAddresses)
+
+	ou, err := client.NetworkObject(out[0]["_ref"].(string)).NextAvailableIP(1, excludedAddresses)
+
 	if err != nil {
 		log.Printf("[ERROR] Unable to allocate NextAvailableIP: %s", err)
 		return err
