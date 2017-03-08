@@ -108,6 +108,10 @@ func resourceInfobloxIPCreate(d *schema.ResourceData, meta interface{}) error {
 		return err
 	}
 
+	if len(out) == 0 {
+		return fmt.Errorf("Empty response from client.Network().find. Is %s a valid network?", ntwork)
+	}
+
 	printList(out, nil)
 
 	log.Print("[TRACE] invoking client.NetworkObject().NextAvailableIP")
