@@ -49,8 +49,6 @@ import (
 	"fmt"
 	"github.com/fanatic/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
-	"strings"
 )
 
 func resourceInfobloxIP() *schema.Resource {
@@ -63,8 +61,15 @@ func resourceInfobloxIP() *schema.Resource {
 		Schema: map[string]*schema.Schema{
 			"cidr": &schema.Schema{
 				Type:     schema.TypeString,
-				Required: true,
+				Optional: true,
 				ForceNew: false,
+			},
+
+			"ip_range": &schema.Schema{
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      false,
+				ConflictsWith: []string{"cidr"},
 			},
 
 			"ipaddress": &schema.Schema{
@@ -82,118 +87,95 @@ func resourceInfobloxIP() *schema.Resource {
 	}
 }
 
-func resourceInfobloxIPCreate(d *schema.ResourceData, meta interface{}) error {
-	client := meta.(*infoblox.Client)
+func getNextAvailableIPFromCIDR(client *infoblox.Client, cidr string, excludedAddresses []string) (string, error) {
+	var (
+		err    error
+		result string
+		ou     map[string]interface{}
+	)
 
-	log.Print("[TRACE] inside resourceInfobloxIPCreate.")
+	network, err := getNetwork(client, cidr)
 
-	ntwork := d.Get("cidr")
-
-	log.Printf("[TRACE] CIDR from terraform file: %s", ntwork.(string))
-
-	s := "network"
-	q := []infoblox.Condition{
-		infoblox.Condition{
-			Field: &s,
-			Value: ntwork.(string),
-		},
+	if len(network) == 0 {
+		err = fmt.Errorf("[ERROR] Empty response from client.Network().find. Is %s a valid network?", cidr)
 	}
 
-	log.Print("[TRACE] invoking client.Network().find")
-
-	out, err := client.Network().Find(q, nil)
-
-	if err != nil {
-		log.Printf("[ERROR] Unable to invoke find on cidr: %s, %s", ntwork, err)
-		return err
-	}
-
-	if len(out) == 0 {
-		return fmt.Errorf("Empty response from client.Network().find. Is %s a valid network?", ntwork)
-	}
-
-	printList(out, nil)
-
-	log.Print("[TRACE] invoking client.NetworkObject().NextAvailableIP")
-
-	var excludedAddresses []string
-	if userExcludes := d.Get("exclude"); userExcludes != nil {
-		addresses := userExcludes.(*schema.Set).List()
-		for _, address := range addresses {
-			excludedAddresses = append(excludedAddresses, address.(string))
+	if err == nil {
+		ou, err = client.NetworkObject(network[0]["_ref"].(string)).NextAvailableIP(1, excludedAddresses)
+		result = getMapValueAsString(ou, "ips")
+		if result == "" {
+			err = fmt.Errorf("Error: unable to determine IP address from response.\n")
 		}
 	}
 
-	log.Printf("[TRACE] Excluding Addresses = %v", excludedAddresses)
+	return result, err
+}
 
-	ou, err := client.NetworkObject(out[0]["_ref"].(string)).NextAvailableIP(1, excludedAddresses)
+func getNextAvailableIPFromRange(client *infoblox.Client, ip_range string, excludedAddresses []string) (string, error) {
+	var (
+		err    error
+		result string
+		ou     map[string]interface{}
+	)
 
-	if err != nil {
-		log.Printf("[ERROR] Unable to allocate NextAvailableIP: %s", err)
+	s := "ip_address"
+	q := []infoblox.Condition{
+		infoblox.Condition{
+			Field: &s,
+			Value: getStartingIP(ip_range),
+		},
+	}
+
+	out, err := client.Ipv4address().Find(q, nil)
+	networkName := getNetworkNameFromIP(out, err)
+	network, err := getNetwork(client, networkName)
+
+	if err == nil {
+		ou, err = client.NetworkObject(network[0]["_ref"].(string)).NextAvailableIP(1, excludedAddresses)
+		result = getMapValueAsString(ou, "ips")
+	}
+
+	return result, err
+}
+
+func resourceInfobloxIPCreate(d *schema.ResourceData, meta interface{}) error {
+	if err := validateIPData(d); err != nil {
 		return err
 	}
 
-	printObject(ou, nil)
+	var (
+		result string
+		err    error
+	)
 
-	log.Print("[TRACE] Walking NextAvailableIP output to get ip")
+	client := meta.(*infoblox.Client)
+	excludedAddresses := buildExcludedAddressesArray(d)
 
-	res := getMapValueAsString(ou, "ips")
-
-	if res == "" {
-		log.Print("Error: unable to determine IP address from response \n", err)
-		return nil
+	if cidr, ok := d.GetOk("cidr"); ok {
+		result, err = getNextAvailableIPFromCIDR(client, cidr.(string), excludedAddresses)
+	} else if ip_range, ok := d.GetOk("ip_range"); ok {
+		result, err = getNextAvailableIPFromRange(client, ip_range.(string), excludedAddresses)
 	}
 
-	log.Printf("[TRACE] returned value in ips structure: %s", res)
+	if err != nil {
+		return err
+	}
 
-	log.Print("[TRACE] Setting ID, locking provisioned IP in terraform")
-
-	d.SetId(res)
-
-	log.Print("[TRACE] Setting output variable 'ipaddress'")
-
-	d.Set("ipaddress", res)
-
-	log.Print("[TRACE] exiting resourceInfobloxIPCreate.")
+	d.SetId(result)
+	d.Set("ipaddress", result)
 
 	return nil
 }
 
-// TODO: I'm positive there's a better way to do this, but this works for now
-func getMapValueAsString(mymap map[string]interface{}, val string) string {
-	for k, v := range mymap {
-		if k == val {
-			vout := fmt.Sprintf("%q", v)
-			vout = strings.Replace(vout, "[", "", -1)
-			vout = strings.Replace(vout, "]", "", -1)
-			vout = strings.Replace(vout, "\"", "", -1)
-			return vout
-		}
+// Validates that either 'cidr' or 'ip_range' is set
+func validateIPData(d *schema.ResourceData) error {
+	_, cidrOk := d.GetOk("cidr")
+	_, ipRangeOk := d.GetOk("ip_range")
+	if !cidrOk && !ipRangeOk {
+		return fmt.Errorf(
+			"One of ['cidr', 'ip_range'] must be set to create an Infoblox IP")
 	}
-
-	return ""
-}
-
-func printList(out []map[string]interface{}, err error) {
-	e(err)
-	for i, v := range out {
-		log.Printf("[%d]\n", i)
-		printObject(v, nil)
-	}
-}
-
-func printObject(out map[string]interface{}, err error) {
-	e(err)
-	for k, v := range out {
-		log.Printf("  %s: %q\n", k, v)
-	}
-	log.Printf("\n")
-}
-
-func e(err error) {
-	if err != nil {
-		log.Printf("Error: %v\n", err)
-	}
+	return nil
 }
 
 func resourceInfobloxIPRead(d *schema.ResourceData, meta interface{}) error {
