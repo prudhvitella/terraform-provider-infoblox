@@ -4,25 +4,11 @@ import (
 	"fmt"
 	"github.com/fanatic/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
-	"log"
 	"strings"
 )
 
-func getNetworkNameFromIP(response []map[string]interface{}, err error) string {
-	e(err)
-
-	for _, v := range response {
-		for k, val := range v {
-			if k == "network" {
-				return val.(string)
-			}
-		}
-	}
-
-	return ""
-}
-
-func getNetwork(client *infoblox.Client, term string) ([]map[string]interface{}, error) {
+// Finds networks by search term, such as network CIDR.
+func getNetworks(client *infoblox.Client, term string) ([]map[string]interface{}, error) {
 	s := "network"
 	q := []infoblox.Condition{
 		infoblox.Condition{
@@ -35,10 +21,7 @@ func getNetwork(client *infoblox.Client, term string) ([]map[string]interface{},
 	return network, err
 }
 
-func getStartingIP(ip_range string) string {
-	return strings.Split(ip_range, "-")[0]
-}
-
+// Builds an array of IP addresses to exclude from terraform resource data.
 func buildExcludedAddressesArray(d *schema.ResourceData) []string {
 	var excludedAddresses []string
 	if userExcludes := d.Get("exclude"); userExcludes != nil {
@@ -65,24 +48,13 @@ func getMapValueAsString(mymap map[string]interface{}, val string) string {
 	return ""
 }
 
-func printList(out []map[string]interface{}, err error) {
-	e(err)
-	for i, v := range out {
-		log.Printf("[%d]\n", i)
-		printObject(v, nil)
+// Validates that either 'cidr' or 'ip_range' terraform argument is set.
+func validateIPData(d *schema.ResourceData) error {
+	_, cidrOk := d.GetOk("cidr")
+	_, ipRangeOk := d.GetOk("ip_range")
+	if !cidrOk && !ipRangeOk {
+		return fmt.Errorf(
+			"One of ['cidr', 'ip_range'] must be set to create an Infoblox IP")
 	}
-}
-
-func printObject(out map[string]interface{}, err error) {
-	e(err)
-	for k, v := range out {
-		log.Printf("  %s: %q\n", k, v)
-	}
-	log.Printf("\n")
-}
-
-func e(err error) {
-	if err != nil {
-		log.Printf("Error: %v\n", err)
-	}
+	return nil
 }

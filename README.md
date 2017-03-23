@@ -102,7 +102,7 @@ that can be used by the infoblox_record resource.
 
 ```
 # Acquire the next available IP from a network CIDR
-#it will create a variable called "ipaddress"
+# it will create a variable called "ipaddress"
 resource "infoblox_ip" "theIPAddress" {
 	cidr = "10.0.0.0/24"
 }
@@ -116,10 +116,31 @@ resource "infoblox_record" "foobar" {
 	type = "A"
 	ttl = 3600
 }
+
+# Exclude specific IP addresses when acquiring next
+# avaiable IP from a network CIDR
+resource "infoblox_ip" "excludedIPAddress" {
+    cidr = "10.0.0.0/24"
+
+    exclude = [
+        "10.0.0.1",
+        "10.0.0.2"
+        # etc.
+    ]
+}
+
+# Acquire gree IP address from within a specific
+# range of addresses
+resource "infoblox_ip" "ipAddressFromRange" {
+    ip_range = "10.0.0.20-10.0.0.60"
+}
 ```
 
 ## Argument Reference
 
 The following arguments are supported:
 
-* `cidr` - (Required) The network to search for - example 10.0.0.0/24
+* `cidr` - (Required) The network to search for - example 10.0.0.0/24. Cannot be specified with `ip\_range`
+* `exclude` - (Optional) A list of IP addresses to exclude
+* `ip\_range` - (Required) The IP range to search within - example 10.0.0.20-10.0.0.40. Cannot be
+  specified with `cidr`

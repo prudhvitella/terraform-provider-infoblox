@@ -49,6 +49,7 @@ import (
 	"fmt"
 	"github.com/fanatic/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
+	"strings"
 )
 
 func resourceInfobloxIP() *schema.Resource {
@@ -87,10 +88,39 @@ func resourceInfobloxIP() *schema.Resource {
 	}
 }
 
+func resourceInfobloxIPCreate(d *schema.ResourceData, meta interface{}) error {
+	if err := validateIPData(d); err != nil {
+		return err
+	}
+
+	var (
+		result string
+		err    error
+	)
+
+	client := meta.(*infoblox.Client)
+	excludedAddresses := buildExcludedAddressesArray(d)
+
+	if cidr, ok := d.GetOk("cidr"); ok {
+		result, err = getNextAvailableIPFromCIDR(client, cidr.(string), excludedAddresses)
+	} else if ip_range, ok := d.GetOk("ip_range"); ok {
+		result, err = getNextAvailableIPFromRange(client, ip_range.(string))
+	}
+
+	if err != nil {
+		return err
+	}
+
+	d.SetId(result)
+	d.Set("ipaddress", result)
+
+	return nil
+}
+
 func getNextAvailableIPFromCIDR(client *infoblox.Client, cidr string, excludedAddresses []string) (string, error) {
 	var (
-		err    error
 		result string
+		err    error
 		ou     map[string]interface{}
 	)
 
@@ -111,71 +141,21 @@ func getNextAvailableIPFromCIDR(client *infoblox.Client, cidr string, excludedAd
 	return result, err
 }
 
-func getNextAvailableIPFromRange(client *infoblox.Client, ip_range string, excludedAddresses []string) (string, error) {
+func getNextAvailableIPFromRange(client *infoblox.Client, ip_range string) (string, error) {
 	var (
-		err    error
 		result string
-		ou     map[string]interface{}
+		err    error
 	)
 
-	s := "ip_address"
-	q := []infoblox.Condition{
-		infoblox.Condition{
-			Field: &s,
-			Value: getStartingIP(ip_range),
-		},
+	ips := strings.Split(ip_range, "-")
+	if len(ips) != 2 {
+		return "", fmt.Errorf("[ERROR] ip_range must be of format <ipv4 addresss>-<ipv4 address>. Instead found: %s", ip_range)
 	}
 
-	out, err := client.Ipv4address().Find(q, nil)
-	networkName := getNetworkNameFromIP(out, err)
-	network, err := getNetwork(client, networkName)
-
-	if err == nil {
-		ou, err = client.NetworkObject(network[0]["_ref"].(string)).NextAvailableIP(1, excludedAddresses)
-		result = getMapValueAsString(ou, "ips")
-	}
+	ou, err := client.FindUnusedIPInRange(ips[0], ips[1])
+	result = ou[0].IPAddress
 
 	return result, err
-}
-
-func resourceInfobloxIPCreate(d *schema.ResourceData, meta interface{}) error {
-	if err := validateIPData(d); err != nil {
-		return err
-	}
-
-	var (
-		result string
-		err    error
-	)
-
-	client := meta.(*infoblox.Client)
-	excludedAddresses := buildExcludedAddressesArray(d)
-
-	if cidr, ok := d.GetOk("cidr"); ok {
-		result, err = getNextAvailableIPFromCIDR(client, cidr.(string), excludedAddresses)
-	} else if ip_range, ok := d.GetOk("ip_range"); ok {
-		result, err = getNextAvailableIPFromRange(client, ip_range.(string), excludedAddresses)
-	}
-
-	if err != nil {
-		return err
-	}
-
-	d.SetId(result)
-	d.Set("ipaddress", result)
-
-	return nil
-}
-
-// Validates that either 'cidr' or 'ip_range' is set
-func validateIPData(d *schema.ResourceData) error {
-	_, cidrOk := d.GetOk("cidr")
-	_, ipRangeOk := d.GetOk("ip_range")
-	if !cidrOk && !ipRangeOk {
-		return fmt.Errorf(
-			"One of ['cidr', 'ip_range'] must be set to create an Infoblox IP")
-	}
-	return nil
 }
 
 func resourceInfobloxIPRead(d *schema.ResourceData, meta interface{}) error {
