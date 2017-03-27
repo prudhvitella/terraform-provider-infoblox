@@ -103,8 +103,8 @@ func resourceInfobloxIPCreate(d *schema.ResourceData, meta interface{}) error {
 
 	if cidr, ok := d.GetOk("cidr"); ok {
 		result, err = getNextAvailableIPFromCIDR(client, cidr.(string), excludedAddresses)
-	} else if ip_range, ok := d.GetOk("ip_range"); ok {
-		result, err = getNextAvailableIPFromRange(client, ip_range.(string))
+	} else if ipRange, ok := d.GetOk("ip_range"); ok {
+		result, err = getNextAvailableIPFromRange(client, ipRange.(string))
 	}
 
 	if err != nil {
@@ -134,22 +134,22 @@ func getNextAvailableIPFromCIDR(client *infoblox.Client, cidr string, excludedAd
 		ou, err = client.NetworkObject(network[0]["_ref"].(string)).NextAvailableIP(1, excludedAddresses)
 		result = getMapValueAsString(ou, "ips")
 		if result == "" {
-			err = fmt.Errorf("Error: unable to determine IP address from response.\n")
+			err = fmt.Errorf("[ERROR] Unable to determine IP address from response")
 		}
 	}
 
 	return result, err
 }
 
-func getNextAvailableIPFromRange(client *infoblox.Client, ip_range string) (string, error) {
+func getNextAvailableIPFromRange(client *infoblox.Client, ipRange string) (string, error) {
 	var (
 		result string
 		err    error
 	)
 
-	ips := strings.Split(ip_range, "-")
+	ips := strings.Split(ipRange, "-")
 	if len(ips) != 2 {
-		return "", fmt.Errorf("[ERROR] ip_range must be of format <ipv4 addresss>-<ipv4 address>. Instead found: %s", ip_range)
+		return "", fmt.Errorf("[ERROR] ip_range must be of format <ipv4 addresss>-<ipv4 address>. Instead found: %s", ipRange)
 	}
 
 	ou, err := client.FindUnusedIPInRange(ips[0], ips[1])
