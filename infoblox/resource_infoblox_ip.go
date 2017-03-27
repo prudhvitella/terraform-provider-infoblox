@@ -124,7 +124,7 @@ func getNextAvailableIPFromCIDR(client *infoblox.Client, cidr string, excludedAd
 		ou     map[string]interface{}
 	)
 
-	network, err := getNetwork(client, cidr)
+	network, err := getNetworks(client, cidr)
 
 	if len(network) == 0 {
 		err = fmt.Errorf("[ERROR] Empty response from client.Network().find. Is %s a valid network?", cidr)
