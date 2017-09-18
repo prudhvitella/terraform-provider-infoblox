@@ -44,6 +44,11 @@ func resourceInfobloxRecord() *schema.Resource {
 				Optional: true,
 				Default:  "3600",
 			},
+			"view": &schema.Schema{
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  "",
+			},
 		},
 	}
 }
@@ -64,7 +69,7 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 	switch strings.ToUpper(d.Get("type").(string)) {
 	case "A":
 		opts := &infoblox.Options{
-			ReturnFields: []string{"ttl", "ipv4addr", "name"},
+			ReturnFields: []string{"ttl", "ipv4addr", "name", "view"},
 		}
 		recID, err = client.RecordA().Create(record, opts, nil)
 	case "AAAA":
@@ -107,6 +112,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("name", fqdn[0])
 		d.Set("domain", strings.Join(fqdn[1:], "."))
 		d.Set("ttl", rec.Ttl)
+		d.Set("view", rec.View)
 
 	case "AAAA":
 		rec, err := client.GetRecordAAAA(d.Id(), nil)
@@ -167,7 +173,7 @@ func resourceInfobloxRecordUpdate(d *schema.ResourceData, meta interface{}) erro
 	switch strings.ToUpper(d.Get("type").(string)) {
 	case "A":
 		opts := &infoblox.Options{
-			ReturnFields: []string{"ttl", "ipv4addr", "name"},
+			ReturnFields: []string{"ttl", "ipv4addr", "name", "view"},
 		}
 		recID, updateErr = client.RecordAObject(d.Id()).Update(record, opts, nil)
 	case "AAAA":
@@ -245,6 +251,10 @@ func getAll(d *schema.ResourceData, record url.Values) error {
 
 	if attr, ok := d.GetOk("ttl"); ok {
 		record.Set("ttl", attr.(string))
+	}
+
+	if attr, ok := d.GetOk("view"); ok {
+		record.Set("view", attr.(string))
 	}
 
 	var value string
