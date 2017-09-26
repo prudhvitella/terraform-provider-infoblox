@@ -97,6 +97,14 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 	return resourceInfobloxRecordRead(d, meta)
 }
 
+func handleReadError(d *schema.ResourceData, record_type string, err error) error {
+	if err.(infoblox.Error).Code() == "Client.Ibap.Data.NotFound" {
+		d.SetId("")
+		return nil
+	}
+	return fmt.Errorf("Error reading Infoblox %s record: %s", record_type, err)
+}
+
 func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
@@ -104,7 +112,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 	case "A":
 		rec, err := client.GetRecordA(d.Id(), nil)
 		if err != nil {
-			return fmt.Errorf("Couldn't find Infoblox A record: %s", err)
+			return handleReadError(d, "A", err)
 		}
 		d.Set("value", rec.Ipv4Addr)
 		d.Set("type", "A")
@@ -117,7 +125,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 	case "AAAA":
 		rec, err := client.GetRecordAAAA(d.Id(), nil)
 		if err != nil {
-			return fmt.Errorf("Couldn't find Infoblox AAAA record: %s", err)
+			return handleReadError(d, "AAAA", err)
 		}
 		d.Set("value", rec.Ipv6Addr)
 		d.Set("type", "AAAA")
@@ -129,7 +137,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 	case "CNAME":
 		rec, err := client.GetRecordCname(d.Id(), nil)
 		if err != nil {
-			return fmt.Errorf("Couldn't find Infoblox CNAME record: %s", err)
+			return handleReadError(d, "CNAME", err)
 		}
 		d.Set("value", rec.Canonical)
 		d.Set("type", "CNAME")
