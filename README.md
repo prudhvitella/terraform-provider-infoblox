@@ -3,7 +3,7 @@ status](https://travis-ci.org/prudhvitella/terraform-provider-infoblox.svg)](htt
 
 # [Terraform](https://github.com/hashicorp/terraform) Infoblox Provider
 
-The Inflbox provider is used to interact with the
+The Infoblox provider is used to interact with the
 resources supported by Infoblox. The provider needs to be configured
 with the proper credentials before it can be used.
 
@@ -73,7 +73,7 @@ The type of record being created affects the interpretation of the `value` argum
 
 #### A Record
 
-* `value` is the hostname
+* `value` is the IPv4 address
 
 #### CNAME Record
 
@@ -142,5 +142,5 @@ The following arguments are supported:
 
 * `cidr` - (Required) The network to search for - example 10.0.0.0/24. Cannot be specified with `ip\_range`
 * `exclude` - (Optional) A list of IP addresses to exclude
-* `ip\_range` - (Required) The IP range to search within - example 10.0.0.20-10.0.0.40. Cannot be
+* `ip_range` - (Required) The IP range to search within - example 10.0.0.20-10.0.0.40. Cannot be
   specified with `cidr`
