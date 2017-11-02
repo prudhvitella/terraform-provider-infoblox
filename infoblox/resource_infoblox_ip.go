@@ -47,9 +47,10 @@ resource "infoblox_record" "foobar" {
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/fanatic/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
-	"strings"
 )
 
 func resourceInfobloxIP() *schema.Resource {
@@ -125,6 +126,12 @@ func getNextAvailableIPFromCIDR(client *infoblox.Client, cidr string, excludedAd
 	)
 
 	network, err := getNetworks(client, cidr)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "Authorization Required") {
+			return "", fmt.Errorf("[ERROR] Authentication Error, Please check your username/password ")
+		}
+	}
 
 	if len(network) == 0 {
 		err = fmt.Errorf("[ERROR] Empty response from client.Network().find. Is %s a valid network?", cidr)
