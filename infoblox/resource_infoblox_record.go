@@ -98,9 +98,11 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 }
 
 func handleReadError(d *schema.ResourceData, record_type string, err error) error {
-	if err.(infoblox.Error).Code() == "Client.Ibap.Data.NotFound" {
-		d.SetId("")
-		return nil
+	if infobloxErr, ok := err.(infoblox.Error); ok {
+		if infobloxErr.Code() == "Client.Ibap.Data.NotFound" {
+			d.SetId("")
+			return nil
+		}
 	}
 	return fmt.Errorf("Error reading Infoblox %s record: %s", record_type, err)
 }
