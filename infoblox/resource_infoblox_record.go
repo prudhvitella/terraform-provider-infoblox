@@ -44,6 +44,7 @@ func resourceInfobloxRecord() *schema.Resource {
 				Optional: true,
 				Default:  "3600",
 			},
+
 			"view": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -97,14 +98,14 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 	return resourceInfobloxRecordRead(d, meta)
 }
 
-func handleReadError(d *schema.ResourceData, record_type string, err error) error {
+func handleReadError(d *schema.ResourceData, recordType string, err error) error {
 	if infobloxErr, ok := err.(infoblox.Error); ok {
 		if infobloxErr.Code() == "Client.Ibap.Data.NotFound" {
 			d.SetId("")
 			return nil
 		}
 	}
-	return fmt.Errorf("Error reading Infoblox %s record: %s", record_type, err)
+	return fmt.Errorf("Error reading Infoblox %s record: %s", recordType, err)
 }
 
 func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error {
@@ -222,7 +223,7 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 
 		deleteErr := client.RecordAObject(d.Id()).Delete(nil)
 		if deleteErr != nil {
-			return fmt.Errorf("Error deleting Infoblox A Record: %s", err)
+			return fmt.Errorf("Error deleting Infoblox A Record: %s", deleteErr)
 		}
 	case "AAAA":
 		_, err := client.GetRecordAAAA(d.Id(), nil)
@@ -232,7 +233,7 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 
 		deleteErr := client.RecordAAAAObject(d.Id()).Delete(nil)
 		if deleteErr != nil {
-			return fmt.Errorf("Error deleting Infoblox AAAA Record: %s", err)
+			return fmt.Errorf("Error deleting Infoblox AAAA Record: %s", deleteErr)
 		}
 	case "CNAME":
 		_, err := client.GetRecordCname(d.Id(), nil)
@@ -242,7 +243,7 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 
 		deleteErr := client.RecordCnameObject(d.Id()).Delete(nil)
 		if deleteErr != nil {
-			return fmt.Errorf("Error deleting Infoblox CNAME Record: %s", err)
+			return fmt.Errorf("Error deleting Infoblox CNAME Record: %s", deleteErr)
 		}
 	default:
 		return fmt.Errorf("resourceInfobloxRecordDelete: unknown type")
