@@ -23,7 +23,7 @@ provider "infoblox" {
 }
 
 # Create a record
-resource "infoblox_record" "www" {
+resource "infoblox_record_a" "www" {
     ...
 }
 ```
@@ -38,60 +38,114 @@ The following arguments are supported:
 * `sslverify` - (Required) Enable ssl for the REST api, but it can also be sourced from the `INFOBLOX_SSLVERIFY` environment variable.
 * `usecookies` - (Optional) Use cookies to connect to the REST API, but it can also be sourced from the `INFOBLOX_USECOOKIES` environment variable
 
-# infoblox\_record
+# infoblox\_record\_a
 
-Provides a Infoblox record resource.
+Provides an Infoblox A record resource.
 
 ## Example Usage
 
 ```
-# Add a record to the domain
-resource "infoblox_record" "foobar" {
-	value = "192.168.0.10"
-	name = "terraform"
-	domain = "mydomain.com"
-	type = "A"
-	ttl = 3600
+resource "infoblox_record_a" "web" {
+  address = "10.1.2.3"
+  name    = "some.fqdn.lan"
+
+  comment = "ipv4 address for Acme web server"
+  ttl     = 3600
+  view    = "default"
 }
 ```
 
 ## Argument Reference
 
-See [related part of Infoblox Docs](https://godoc.org/github.com/fanatic/go-infoblox) for details about valid values.
+The following arguments are supported:
+
+* `address` - (Required) The IPv4 address of the record
+* `name` - (Required) The FQDN of the record
+* `comment` - (Optional) The comment for the record
+* `ttl` - (Integer, Optional) The TTL of the record
+* `view` - (Optional) The view of the record
+
+# infoblox\_record\_aaaa
+
+Provides an Infoblox AAAA record resource.
+
+## Example Usage
+
+```
+resource "infoblox_record_aaaa" "web" {
+  address = "2001:db8:85a3::8a2e:370:7334"
+  name    = "some.fqdn.lan"
+
+  comment = "ipv6 address for Acme web server"
+  ttl     = 3600
+  view    = "default"
+}
+```
+
+## Argument Reference
 
 The following arguments are supported:
 
-* `domain` - (Required) The domain to add the record to
-* `value` - (Required) The value of the record; its usage will depend on the `type` (see below)
-* `name` - (Required) The name of the record
+* `address` - (Required) The IPv6 address of the record
+* `name` - (Required) The FQDN of the record
+* `comment` - (Optional) The comment for the record
 * `ttl` - (Integer, Optional) The TTL of the record
-* `type` - (Required) The type of the record
+* `view` - (Optional) The view of the record
 
-## DNS Record Types
+# infoblox\_record\_cname
 
-The type of record being created affects the interpretation of the `value` argument.
+Provides an Infoblox CNAME record resource.
 
-#### A Record
+## Example Usage
 
-* `value` is the IPv4 address
+```
+resource "infoblox_record_cname" "www" {
+  canonical = "fqdn.lan"
+  name      = "www.fqdn.lan"
 
-#### CNAME Record
+  comment = "ipv6 address for Acme web server"
+  ttl     = 3600
+  view    = "www.fqdn.lan is an alias for fqdn.lan"
+}
+```
 
-* `value` is the alias name
+## Argument Reference
 
-#### AAAA Record
+The following arguments are supported:
 
-* `value` is the IPv6 address
+* `canonical` - (Required) The canonical address to point to
+* `name` - (Required) The FQDN of the alias
+* `comment` - (Optional) The comment for the record
+* `ttl` - (Integer, Optional) The TTL of the record
+* `view` - (Optional) The view of the record
 
-## Attributes Reference
+# infoblox\_record\_ptr
 
-The following attributes are exported:
+Provides an Infoblox PTR record resource.
 
-* `domain` - The domain of the record
-* `value` - The value of the record
-* `name` - The name of the record
-* `type` - The type of the record
-* `ttl` - The TTL of the record
+## Example Usage
+
+```
+resource "infoblox_record_ptr" "ptr" {
+  ptrdname = "some.fqdn.lan"
+  address  = "10.0.0.10.in-addr.arpa"
+
+  comment = "Reverse lookup for some.fqdn.lan"
+  ttl     = 3600
+  view    = "default"
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `ptrdname` - (Required) The
+* `address` - (Required, conflicts with `name`) This field is required if you do not use the name field. Either the IP address or name is required. Example: 10.0.0.11. If the PTR record belongs to a forward-mapping zone, this field is empty. Accepts both IPv4 and IPv6 addresses.
+* `name` - (Required, conflicts with `address`) This field is required if you do not use the address field. Either the IP address or name is required. Example: 10.0.0.10.in.addr.arpa
+* `comment` - (Optional) The comment for the record
+* `ttl` - (Integer, Optional) The TTL of the record
+* `view` - (Optional) The view of the record
 
 # infoblox\_ip
 
@@ -103,18 +157,17 @@ that can be used by the infoblox_record resource.
 ```
 # Acquire the next available IP from a network CIDR
 # it will create a variable called "ipaddress"
-resource "infoblox_ip" "theIPAddress" {
+resource "infoblox_ip" "ip" {
 	cidr = "10.0.0.0/24"
 }
 
+resource "infoblox_record_a" "web" {
+  address = "${infoblox_ip.ip.ipaddress}"
+  name    = "some.fqdn.lan"
 
-# Add a record to the domain
-resource "infoblox_record" "foobar" {
-	value = "${infoblox_ip.theIPAddress.ipaddress}"
-	name = "terraform"
-	domain = "mydomain.com"
-	type = "A"
-	ttl = 3600
+  comment = "ipv4 address for Acme web server"
+  ttl     = 3600
+  view    = "default"
 }
 
 # Exclude specific IP addresses when acquiring next
@@ -129,7 +182,7 @@ resource "infoblox_ip" "excludedIPAddress" {
     ]
 }
 
-# Acquire gree IP address from within a specific
+# Acquire free IP address from within a specific
 # range of addresses
 resource "infoblox_ip" "ipAddressFromRange" {
     ip_range = "10.0.0.20-10.0.0.60"
@@ -140,7 +193,68 @@ resource "infoblox_ip" "ipAddressFromRange" {
 
 The following arguments are supported:
 
-* `cidr` - (Required) The network to search for - example 10.0.0.0/24. Cannot be specified with `ip\_range`
+* `cidr` - (Required) The network to search for - example 10.0.0.0/24. Cannot be specified with `ip_range`
 * `exclude` - (Optional) A list of IP addresses to exclude
 * `ip_range` - (Required) The IP range to search within - example 10.0.0.20-10.0.0.40. Cannot be
   specified with `cidr`
+
+
+# Deprecated Resources
+
+The following resources are deprecated and will no longer see active development. It is recommended you use the dedicated `infoblox_record_*` resources instead.
+
+## infoblox\_record
+
+Provides a Infoblox record resource.
+
+### Example Usage
+
+```
+# Add a record to the domain
+resource "infoblox_record" "foobar" {
+	value = "192.168.0.10"
+	name = "terraform"
+	domain = "mydomain.com"
+	type = "A"
+	ttl = 3600
+}
+```
+
+### Argument Reference
+
+See [related part of Infoblox Docs](https://godoc.org/github.com/fanatic/go-infoblox) for details about valid values.
+
+The following arguments are supported:
+
+* `domain` - (Required) The domain to add the record to
+* `value` - (Required) The value of the record; its usage will depend on the `type` (see below)
+* `name` - (Required) The name of the record
+* `ttl` - (Integer, Optional) The TTL of the record
+* `type` - (Required) The type of the record
+* `comment` - (Optional) The comment of the record
+
+### DNS Record Types
+
+The type of record being created affects the interpretation of the `value` argument.
+
+##### A Record
+
+* `value` is the IPv4 address
+
+##### CNAME Record
+
+* `value` is the alias name
+
+##### AAAA Record
+
+* `value` is the IPv6 address
+
+### Attributes Reference
+
+The following attributes are exported:
+
+* `domain` - The domain of the record
+* `value` - The value of the record
+* `name` - The name of the record
+* `type` - The type of the record
+* `ttl` - The TTL of the record

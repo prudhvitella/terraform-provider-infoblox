@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+var deprecated = `The entire 'infoblox_record'
+resource is deprecated and will no longer see active development. It is
+recommended you use the dedicated infoblox_record_* resources instead.`
+
 func resourceInfobloxRecord() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceInfobloxRecordCreate,
@@ -19,9 +23,10 @@ func resourceInfobloxRecord() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"domain": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:       schema.TypeString,
+				Required:   true,
+				ForceNew:   true,
+				Deprecated: deprecated,
 			},
 
 			"name": &schema.Schema{

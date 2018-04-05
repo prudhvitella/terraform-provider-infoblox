@@ -2,10 +2,46 @@ package infoblox
 
 import (
 	"fmt"
+	"net"
+	"net/url"
+	"strconv"
+	"strings"
+
 	"github.com/fanatic/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
-	"strings"
 )
+
+// The comment, ttl, and, view attributes are common across all of the DNS
+// record objects we deal with so far so we extract populating them into the
+// url.Values object into a helper function.
+func populateSharedAttributes(d *schema.ResourceData, record *url.Values) {
+	if attr, ok := d.GetOk("comment"); ok {
+		record.Set("comment", attr.(string))
+	}
+
+	if attr, ok := d.GetOk("ttl"); ok {
+		record.Set("ttl", strconv.Itoa(attr.(int)))
+	}
+
+	if attr, ok := d.GetOk("view"); ok {
+		record.Set("view", attr.(string))
+	}
+}
+
+// Parses the given string as an ip address and returns "ipv4addr" if it is an
+// ipv4 address and "ipv6addr" if it is an ipv6 address
+func ipType(value string) (string, error) {
+	ip := net.ParseIP(value)
+	if ip == nil {
+		return "", fmt.Errorf("value does not appear to be a valid ip address")
+	}
+
+	res := "ipv6addr"
+	if ip.To4() != nil {
+		res = "ipv4addr"
+	}
+	return res, nil
+}
 
 // Finds networks by search term, such as network CIDR.
 func getNetworks(client *infoblox.Client, term string) ([]map[string]interface{}, error) {
