@@ -50,9 +50,9 @@ func Provider() terraform.ResourceProvider {
 			"infoblox_record_cname": infobloxRecordCNAME(),
 			"infoblox_record_ptr":   infobloxRecordPTR(),
 			"infoblox_record_host":  infobloxRecordHost(),
-			// "infoblox_record_txt":   infobloxRecordTXT(),
-			"infoblox_record_mx": infobloxRecordMX(),
-			// "infoblox_record_srv":   infobloxRecordSRV(),
+			"infoblox_record_txt":   infobloxRecordTXT(),
+			"infoblox_record_mx":    infobloxRecordMX(),
+			"infoblox_record_srv":   infobloxRecordSRV(),
 		},
 
 		ConfigureFunc: provideConfigure,

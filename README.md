@@ -195,6 +195,58 @@ The following arguments are supported:
 * `ttl` - (Integer, Optional) The TTL of the record
 * `view` - (Optional) The view of the record
 
+# infoblox\_record\_txt
+
+Provides an Infoblox TXT record resource.
+
+## Example Usage
+
+```hcl
+resource "infoblox_record_txt" "txt" {
+  name = "some.fqdn.lan"
+  text = "Welcome to the Jungle"
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required)  The name of the TXT record
+* `text` - (Required) The text of the TXT record
+* `comment` - (Optional) The comment for the record
+* `ttl` - (Integer, Optional) The TTL of the record
+* `view` - (Optional) The view of the record
+
+# infoblox\_record\_srv
+
+Provides an Infoblox SRV record resource.
+
+## Example Usage
+
+```hcl
+resource "infoblox_record_srv" "srv" {
+  name = "bind_srv.domain.com"
+  port = 1234
+  priority = 1
+  weight = 1
+  target = "old.target.test.org"
+}
+```
+
+## Argument Reference
+
+The following arguments are supported:
+
+* `name` - (Required)  The name of the record
+* `port` - (Integer, Required) The port of the SRV record
+* `priority` - (Integer, Required) The priority of the SRV record
+* `weight` - (Integer, Required) The weight of the SRV record
+* `target` - (Required) The target of the SRV record
+* `comment` - (Optional) The comment for the record
+* `ttl` - (Integer, Optional) The TTL of the record
+* `view` - (Optional) The view of the record
+
 # infoblox\_ip
 
 Queries the next available IP address from a network and returns it in a computed variable
