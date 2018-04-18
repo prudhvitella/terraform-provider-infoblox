@@ -49,8 +49,10 @@ func Provider() terraform.ResourceProvider {
 			"infoblox_record_aaaa":  infobloxRecordAAAA(),
 			"infoblox_record_cname": infobloxRecordCNAME(),
 			"infoblox_record_ptr":   infobloxRecordPTR(),
-			// TODO: Write the TXT, SRV, MX, and NS resources.
-			// Requires changes to upstead go-infoblox library.
+			"infoblox_record_host":  infobloxRecordHost(),
+			// "infoblox_record_txt":   infobloxRecordTXT(),
+			"infoblox_record_mx": infobloxRecordMX(),
+			// "infoblox_record_srv":   infobloxRecordSRV(),
 		},
 
 		ConfigureFunc: provideConfigure,

@@ -94,3 +94,13 @@ func validateIPData(d *schema.ResourceData) error {
 	}
 	return nil
 }
+
+func handleReadError(d *schema.ResourceData, recordType string, err error) error {
+	if infobloxErr, ok := err.(infoblox.Error); ok {
+		if infobloxErr.Code() == "Client.Ibap.Data.NotFound" {
+			d.SetId("")
+			return nil
+		}
+	}
+	return fmt.Errorf("Error reading Infoblox %s record: %s", recordType, err)
+}

@@ -80,12 +80,12 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 		recID, err = client.RecordA().Create(record, opts, nil)
 	case "AAAA":
 		opts := &infoblox.Options{
-			ReturnFields: []string{"ttl", "ipv6addr", "name"},
+			ReturnFields: []string{"ttl", "ipv6addr", "name", "view"},
 		}
 		recID, err = client.RecordAAAA().Create(record, opts, nil)
 	case "CNAME":
 		opts := &infoblox.Options{
-			ReturnFields: []string{"ttl", "canonical", "name"},
+			ReturnFields: []string{"ttl", "canonical", "name", "view"},
 		}
 		recID, err = client.RecordCname().Create(record, opts, nil)
 	default:
@@ -101,16 +101,6 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] record ID: %s", d.Id())
 
 	return resourceInfobloxRecordRead(d, meta)
-}
-
-func handleReadError(d *schema.ResourceData, recordType string, err error) error {
-	if infobloxErr, ok := err.(infoblox.Error); ok {
-		if infobloxErr.Code() == "Client.Ibap.Data.NotFound" {
-			d.SetId("")
-			return nil
-		}
-	}
-	return fmt.Errorf("Error reading Infoblox %s record: %s", recordType, err)
 }
 
 func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error {
@@ -141,6 +131,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("name", fqdn[0])
 		d.Set("domain", strings.Join(fqdn[1:], "."))
 		d.Set("ttl", rec.Ttl)
+		d.Set("view", rec.View)
 
 	case "CNAME":
 		rec, err := client.GetRecordCname(d.Id(), nil)
@@ -153,6 +144,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("name", fqdn[0])
 		d.Set("domain", strings.Join(fqdn[1:], "."))
 		d.Set("ttl", rec.Ttl)
+		d.Set("view", rec.View)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordRead: unknown type")
 	}
