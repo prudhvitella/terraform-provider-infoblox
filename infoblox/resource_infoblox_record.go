@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
+var deprecated = `The entire 'infoblox_record'
+resource is deprecated and will no longer see active development. It is
+recommended you use the dedicated infoblox_record_* resources instead.`
+
 func resourceInfobloxRecord() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceInfobloxRecordCreate,
@@ -19,9 +23,10 @@ func resourceInfobloxRecord() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"domain": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Type:       schema.TypeString,
+				Required:   true,
+				ForceNew:   true,
+				Deprecated: deprecated,
 			},
 
 			"name": &schema.Schema{
@@ -44,6 +49,7 @@ func resourceInfobloxRecord() *schema.Resource {
 				Optional: true,
 				Default:  "3600",
 			},
+
 			"view": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
@@ -74,12 +80,12 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 		recID, err = client.RecordA().Create(record, opts, nil)
 	case "AAAA":
 		opts := &infoblox.Options{
-			ReturnFields: []string{"ttl", "ipv6addr", "name"},
+			ReturnFields: []string{"ttl", "ipv6addr", "name", "view"},
 		}
 		recID, err = client.RecordAAAA().Create(record, opts, nil)
 	case "CNAME":
 		opts := &infoblox.Options{
-			ReturnFields: []string{"ttl", "canonical", "name"},
+			ReturnFields: []string{"ttl", "canonical", "name", "view"},
 		}
 		recID, err = client.RecordCname().Create(record, opts, nil)
 	default:
@@ -95,16 +101,6 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 	log.Printf("[INFO] record ID: %s", d.Id())
 
 	return resourceInfobloxRecordRead(d, meta)
-}
-
-func handleReadError(d *schema.ResourceData, record_type string, err error) error {
-	if infobloxErr, ok := err.(infoblox.Error); ok {
-		if infobloxErr.Code() == "Client.Ibap.Data.NotFound" {
-			d.SetId("")
-			return nil
-		}
-	}
-	return fmt.Errorf("Error reading Infoblox %s record: %s", record_type, err)
 }
 
 func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error {
@@ -135,6 +131,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("name", fqdn[0])
 		d.Set("domain", strings.Join(fqdn[1:], "."))
 		d.Set("ttl", rec.Ttl)
+		d.Set("view", rec.View)
 
 	case "CNAME":
 		rec, err := client.GetRecordCname(d.Id(), nil)
@@ -147,6 +144,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		d.Set("name", fqdn[0])
 		d.Set("domain", strings.Join(fqdn[1:], "."))
 		d.Set("ttl", rec.Ttl)
+		d.Set("view", rec.View)
 	default:
 		return fmt.Errorf("resourceInfobloxRecordRead: unknown type")
 	}
@@ -222,7 +220,7 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 
 		deleteErr := client.RecordAObject(d.Id()).Delete(nil)
 		if deleteErr != nil {
-			return fmt.Errorf("Error deleting Infoblox A Record: %s", err)
+			return fmt.Errorf("Error deleting Infoblox A Record: %s", deleteErr)
 		}
 	case "AAAA":
 		_, err := client.GetRecordAAAA(d.Id(), nil)
@@ -232,7 +230,7 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 
 		deleteErr := client.RecordAAAAObject(d.Id()).Delete(nil)
 		if deleteErr != nil {
-			return fmt.Errorf("Error deleting Infoblox AAAA Record: %s", err)
+			return fmt.Errorf("Error deleting Infoblox AAAA Record: %s", deleteErr)
 		}
 	case "CNAME":
 		_, err := client.GetRecordCname(d.Id(), nil)
@@ -242,7 +240,7 @@ func resourceInfobloxRecordDelete(d *schema.ResourceData, meta interface{}) erro
 
 		deleteErr := client.RecordCnameObject(d.Id()).Delete(nil)
 		if deleteErr != nil {
-			return fmt.Errorf("Error deleting Infoblox CNAME Record: %s", err)
+			return fmt.Errorf("Error deleting Infoblox CNAME Record: %s", deleteErr)
 		}
 	default:
 		return fmt.Errorf("resourceInfobloxRecordDelete: unknown type")

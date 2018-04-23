@@ -44,6 +44,15 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"infoblox_record": resourceInfobloxRecord(),
 			"infoblox_ip":     resourceInfobloxIP(),
+
+			"infoblox_record_a":     infobloxRecordA(),
+			"infoblox_record_aaaa":  infobloxRecordAAAA(),
+			"infoblox_record_cname": infobloxRecordCNAME(),
+			"infoblox_record_ptr":   infobloxRecordPTR(),
+			"infoblox_record_host":  infobloxRecordHost(),
+			"infoblox_record_txt":   infobloxRecordTXT(),
+			"infoblox_record_mx":    infobloxRecordMX(),
+			"infoblox_record_srv":   infobloxRecordSRV(),
 		},
 
 		ConfigureFunc: provideConfigure,

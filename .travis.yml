@@ -12,6 +12,7 @@ before_install:
   - go get github.com/tcnksm/ghr
   - go get github.com/davecgh/go-spew/spew
   - go get github.com/hashicorp/logutils
+  - go get -u github.com/fanatic/go-infoblox
   - go get -u github.com/kardianos/govendor
   - govendor sync
 after_success:
