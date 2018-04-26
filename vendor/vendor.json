@@ -198,10 +198,10 @@
 			"revisionTime": "2017-07-11T18:34:51Z"
 		},
 		{
-			"checksumSHA1": "ZzSme+6wyILtfsh7Femaqp+vKR0=",
+			"checksumSHA1": "votj0g6PLsfsGRsCj23P5VzNCxs=",
 			"path": "github.com/defilan/go-infoblox",
-			"revision": "c8a6f9b966c361440676b403df7803ccc40e7e9a",
-			"revisionTime": "2018-04-26T12:02:22Z"
+			"revision": "2e10cabe0f5c00447fec19ca3bd1454f248b63bf",
+			"revisionTime": "2018-04-26T12:48:51Z"
 		},
 		{
 			"checksumSHA1": "87LEfpY9cOk9CP7pWyIbmQ/6enU=",
@@ -928,5 +928,5 @@
 			"revisionTime": "2017-08-15T17:45:05Z"
 		}
 	],
-	"rootPath": "github.com/prudhvitella/terraform-provider-infoblox"
+	"rootPath": "github.com/defilan/terraform-provider-infoblox"
 }
