@@ -198,10 +198,10 @@
 			"revisionTime": "2017-07-11T18:34:51Z"
 		},
 		{
-			"checksumSHA1": "h8AiJc65HX3Vp1vGkOBEA5umorQ=",
-			"path": "github.com/fanatic/go-infoblox",
-			"revision": "ece4e23a370d0bbac46d17f386f73d0d124a8d97",
-			"revisionTime": "2018-04-14T18:49:06Z"
+			"checksumSHA1": "ZzSme+6wyILtfsh7Femaqp+vKR0=",
+			"path": "github.com/defilan/go-infoblox",
+			"revision": "c8a6f9b966c361440676b403df7803ccc40e7e9a",
+			"revisionTime": "2018-04-26T12:02:22Z"
 		},
 		{
 			"checksumSHA1": "87LEfpY9cOk9CP7pWyIbmQ/6enU=",
@@ -747,10 +747,10 @@
 			"revisionTime": "2017-08-04T00:04:37Z"
 		},
 		{
-			"checksumSHA1": "txD8w9+dmFn4uG8BbqdZwXawT6E=",
+			"checksumSHA1": "Q165MxF3KQE3AaU3GGPsKFLEFCU=",
 			"path": "golang.org/x/net/publicsuffix",
-			"revision": "1c05540f6879653db88113bc4a2b70aec4bd491f",
-			"revisionTime": "2017-08-04T00:04:37Z"
+			"revision": "5f9ae10d9af5b1c89ae6904293b14b064d4ada23",
+			"revisionTime": "2018-04-20T07:04:21Z"
 		},
 		{
 			"checksumSHA1": "u/r66lwYfgg682u5hZG7/E7+VCY=",

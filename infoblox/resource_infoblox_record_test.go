@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fanatic/go-infoblox"
+	"github.com/defilan/go-infoblox"
 	"github.com/hashicorp/terraform/helper/resource"
 	"github.com/hashicorp/terraform/terraform"
 )

@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/url"
 
-	infoblox "github.com/fanatic/go-infoblox"
+	infoblox "github.com/defilan/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -79,7 +79,7 @@ func infobloxRecordHost() *schema.Resource {
 			"configure_for_dns": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default:  false,
 			},
 			"comment": &schema.Schema{
 				Type:     schema.TypeString,
