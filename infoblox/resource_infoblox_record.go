@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/fanatic/go-infoblox"
+	"github.com/defilan/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
