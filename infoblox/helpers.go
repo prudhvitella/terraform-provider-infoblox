@@ -18,6 +18,9 @@ func populateSharedAttributes(d *schema.ResourceData, record *url.Values) {
 	if attr, ok := d.GetOk("comment"); ok {
 		record.Set("comment", attr.(string))
 	}
+	if attr, ok := d.GetOk("configure_for_dns"); ok {
+		record.Set("configure_for_dns", attr.(bool))
+	}
 
 	if attr, ok := d.GetOk("ttl"); ok {
 		record.Set("ttl", strconv.Itoa(attr.(int)))
