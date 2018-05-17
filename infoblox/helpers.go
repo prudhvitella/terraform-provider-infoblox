@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fanatic/go-infoblox"
+	"github.com/defilan/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -18,7 +18,9 @@ func populateSharedAttributes(d *schema.ResourceData, record *url.Values) {
 	if attr, ok := d.GetOk("comment"); ok {
 		record.Set("comment", attr.(string))
 	}
-
+	if attr, ok := d.GetOk("configure_for_dns"); ok {
+		record.Set("ConfigureForDNS", strconv.FormatBool(attr.(bool)))
+	}
 	if attr, ok := d.GetOk("ttl"); ok {
 		record.Set("ttl", strconv.Itoa(attr.(int)))
 	}

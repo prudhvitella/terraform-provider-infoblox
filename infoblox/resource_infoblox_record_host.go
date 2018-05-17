@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/url"
 
-	infoblox "github.com/fanatic/go-infoblox"
+	infoblox "github.com/defilan/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -79,7 +79,7 @@ func infobloxRecordHost() *schema.Resource {
 			"configure_for_dns": &schema.Schema{
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  true,
+				Default:  false,
 			},
 			"comment": &schema.Schema{
 				Type:     schema.TypeString,
@@ -146,11 +146,11 @@ func ipv6sFromList(ipv6s []interface{}) []infoblox.HostIpv6Addr {
 
 func hostObjectFromAttributes(d *schema.ResourceData) infoblox.RecordHostObject {
 	hostObject := infoblox.RecordHostObject{}
-
 	if attr, ok := d.GetOk("name"); ok {
 		hostObject.Name = attr.(string)
 	}
 	if attr, ok := d.GetOk("configure_for_dns"); ok {
+		log.Printf("[DEBUG] FOUND CONFIGURE_FOR_DNS")
 		hostObject.ConfigureForDNS = attr.(bool)
 	}
 	if attr, ok := d.GetOk("comment"); ok {
