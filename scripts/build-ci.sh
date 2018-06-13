@@ -25,3 +25,13 @@ gox \
 echo
 echo "==> Results:"
 ls -hl dist/*
+
+echo "==> Generating checksums:"
+if command -v sha256sum >/dev/null 2>&1 ; then
+    sha256sum dist/*
+elif command -v shasum >/dev/null 2>&1 ; then
+    shasum -a 256 dist/*
+else
+    echo "Neither sha256sum nor shasum available, abandoned checksum generation"
+fi
+
