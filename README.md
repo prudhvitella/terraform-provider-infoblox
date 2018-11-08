@@ -77,14 +77,12 @@ resource "infoblox_record_host" "host" {
 * `address` - (Required) The IPv4 address of the object
 * `configure_for_dhcp` - (Boolean, Optional) Specifies whether the IPv4 address object should be configured for DHCP
 * `mac` - (Optional) The MAC address of the resource
-* `host` - (Optional) The Host of the resource
 
 ### Ipv6 options
 
 * `address` - (Required) The IPv6 address of the object
 * `configure_for_dhcp` - (Boolean, Optional) Specifies whether the IPv4 address object should be configured for DHCP
 * `mac` - (Optional) The MAC address of the resource
-* `host` - (Optional) The Host of the resource
 
 # infoblox\_record\_a
 
