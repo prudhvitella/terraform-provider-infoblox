@@ -53,7 +53,7 @@ func resourceInfobloxRecord() *schema.Resource {
 			"view": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "",
+				Default:  "default",
 			},
 		},
 	}
@@ -93,11 +93,10 @@ func resourceInfobloxRecordCreate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if err != nil {
-		return fmt.Errorf("Failed to create Infblox Record: %s", err)
+		return fmt.Errorf("Failed to create Infoblox Record: %s", err.Error())
 	}
 
 	d.SetId(recID)
-
 	log.Printf("[INFO] record ID: %s", d.Id())
 
 	return resourceInfobloxRecordRead(d, meta)
@@ -112,6 +111,7 @@ func resourceInfobloxRecordRead(d *schema.ResourceData, meta interface{}) error 
 		if err != nil {
 			return handleReadError(d, "A", err)
 		}
+
 		d.Set("value", rec.Ipv4Addr)
 		d.Set("type", "A")
 		fqdn := strings.Split(rec.Name, ".")
@@ -199,7 +199,7 @@ func resourceInfobloxRecordUpdate(d *schema.ResourceData, meta interface{}) erro
 	}
 
 	if updateErr != nil {
-		return fmt.Errorf("Failed to update Infblox Record: %s", err)
+		return fmt.Errorf("Failed to update Infoblox Record: %s", err.Error())
 	}
 
 	d.SetId(recID)
