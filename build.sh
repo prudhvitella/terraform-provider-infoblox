@@ -7,7 +7,9 @@ echo "$1"
 echo "================================================================"
 }
 
+PROJECT="terraform-provider-infoblox"
+
 banner "Building docker image..."
-docker build -t terraform-provider-infoblox .
+docker build -t $PROJECT .
 banner "Copying the binary..."
-docker run -v ${PWD}/bin:/out:rw terraform-provider-inflobox
+docker run -v ${PWD}/bin:/out:rw $PROJECT
