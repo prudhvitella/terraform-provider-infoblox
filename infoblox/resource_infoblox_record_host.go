@@ -184,7 +184,7 @@ func resourceInfobloxHostRecordCreate(d *schema.ResourceData, meta interface{}) 
 func resourceInfobloxHostRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	record, err := client.GetRecordHost(d.Id(), nil)
+	record, err := client.GetRecordHost(d.Id(), &infoblox.Options{ReturnBasicFields: true, ReturnFields: []string {"configure_for_dns"}})
 	if err != nil {
 		return handleReadError(d, "Host", err)
 	}
