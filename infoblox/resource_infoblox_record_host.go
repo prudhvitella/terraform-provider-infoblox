@@ -184,7 +184,10 @@ func resourceInfobloxHostRecordCreate(d *schema.ResourceData, meta interface{}) 
 func resourceInfobloxHostRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	record, err := client.GetRecordHost(d.Id(), &infoblox.Options{ReturnBasicFields: true, ReturnFields: []string {"configure_for_dns"}})
+	opts := &infoblox.Options{
+		ReturnFields: []string{"name", "ipv4addrs", "ipv6addrs", "configure_for_dns", "comment", "ttl", "view"},
+	}
+	record, err := client.GetRecordHost(d.Id(), opts)
 	if err != nil {
 		return handleReadError(d, "Host", err)
 	}
@@ -253,7 +256,10 @@ func resourceInfobloxHostRecordRead(d *schema.ResourceData, meta interface{}) er
 func resourceInfobloxHostRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	_, err := client.GetRecordHost(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"name", "ipv4addrs", "ipv6addrs", "configure_for_dns", "comment", "ttl", "view"},
+	}
+	_, err := client.GetRecordHost(d.Id(), opts)
 	if err != nil {
 		return fmt.Errorf("error finding infoblox Host record: %s", err.Error())
 	}
@@ -263,9 +269,6 @@ func resourceInfobloxHostRecordUpdate(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[DEBUG] Updating Infoblox Host record with configuration: %#v", hostObject)
 
-	opts := &infoblox.Options{
-		ReturnFields: []string{"name", "ipv4addr", "ipv6addr", "configure_for_dns", "comment", "ttl", "view"},
-	}
 	recordID, err := client.RecordHostObject(d.Id()).Update(record, opts, hostObject)
 	if err != nil {
 		return fmt.Errorf("error updating Infoblox Host record: %s", err.Error())

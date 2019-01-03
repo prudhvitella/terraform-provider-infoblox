@@ -93,7 +93,10 @@ func resourceInfobloxSRVRecordCreate(d *schema.ResourceData, meta interface{}) e
 func resourceInfobloxSRVRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	record, err := client.GetRecordSrv(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"name", "port", "priority", "target", "weight", "comment", "ttl", "view"},
+	}
+	record, err := client.GetRecordSrv(d.Id(), opts)
 	if err != nil {
 		return handleReadError(d, "SRV", err)
 	}
@@ -120,7 +123,10 @@ func resourceInfobloxSRVRecordRead(d *schema.ResourceData, meta interface{}) err
 func resourceInfobloxSRVRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	_, err := client.GetRecordSrv(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"name", "port", "priority", "target", "weight", "comment", "ttl", "view"},
+	}
+	_, err := client.GetRecordSrv(d.Id(), opts)
 	if err != nil {
 		return fmt.Errorf("error finding infoblox SRV record: %s", err.Error())
 	}
@@ -141,9 +147,6 @@ func resourceInfobloxSRVRecordUpdate(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Updating Infoblox SRV record with configuration: %#v", record)
 
-	opts := &infoblox.Options{
-		ReturnFields: []string{"name", "port", "priority", "target", "weight", "comment", "ttl", "view"},
-	}
 	recordID, err := client.RecordSrvObject(d.Id()).Update(record, opts, nil)
 	if err != nil {
 		return fmt.Errorf("error updating Infoblox SRV record: %s", err.Error())

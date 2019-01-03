@@ -81,7 +81,10 @@ func resourceInfobloxMXRecordCreate(d *schema.ResourceData, meta interface{}) er
 func resourceInfobloxMXRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	record, err := client.GetRecordMx(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"exchanger", "name", "pref", "comment", "ttl", "view"},
+	}
+	record, err := client.GetRecordMx(d.Id(), opts)
 	if err != nil {
 		return handleReadError(d, "MX", err)
 	}
@@ -106,7 +109,10 @@ func resourceInfobloxMXRecordRead(d *schema.ResourceData, meta interface{}) erro
 func resourceInfobloxMXRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	_, err := client.GetRecordMx(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"exchanger", "name", "pref", "comment", "ttl", "view"},
+	}
+	_, err := client.GetRecordMx(d.Id(), opts)
 	if err != nil {
 		return fmt.Errorf("error finding infoblox MX record: %s", err.Error())
 	}
@@ -119,9 +125,6 @@ func resourceInfobloxMXRecordUpdate(d *schema.ResourceData, meta interface{}) er
 
 	log.Printf("[DEBUG] Updating Infoblox MX record with configuration: %#v", record)
 
-	opts := &infoblox.Options{
-		ReturnFields: []string{"exchanger", "name", "pref", "comment", "ttl", "view"},
-	}
 	recordID, err := client.RecordMxObject(d.Id()).Update(record, opts, nil)
 	if err != nil {
 		return fmt.Errorf("error updating Infoblox MX record: %s", err.Error())

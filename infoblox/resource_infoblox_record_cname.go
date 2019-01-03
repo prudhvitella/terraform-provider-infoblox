@@ -58,7 +58,6 @@ func resourceInfobloxCNAMERecordCreate(d *schema.ResourceData, meta interface{})
 		ReturnFields: []string{"canonical", "name", "comment", "ttl", "view"},
 	}
 	recordID, err := client.RecordCname().Create(record, opts, nil)
-
 	if err != nil {
 		return fmt.Errorf("error creating infoblox CNAME record: %s", err.Error())
 	}
@@ -72,7 +71,10 @@ func resourceInfobloxCNAMERecordCreate(d *schema.ResourceData, meta interface{})
 func resourceInfobloxCNAMERecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	record, err := client.GetRecordCname(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"canonical", "name", "comment", "ttl", "view"},
+	}
+	record, err := client.GetRecordCname(d.Id(), opts)
 	if err != nil {
 		return handleReadError(d, "CNAME", err)
 	}
@@ -96,7 +98,10 @@ func resourceInfobloxCNAMERecordRead(d *schema.ResourceData, meta interface{}) e
 func resourceInfobloxCNAMERecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	_, err := client.GetRecordCname(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"canonical", "name", "comment", "ttl", "view"},
+	}
+	_, err := client.GetRecordCname(d.Id(), opts)
 	if err != nil {
 		return fmt.Errorf("error finding infoblox CNAME record: %s", err.Error())
 	}
@@ -108,9 +113,6 @@ func resourceInfobloxCNAMERecordUpdate(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[DEBUG] Updating Infoblox CNAME record with configuration: %#v", record)
 
-	opts := &infoblox.Options{
-		ReturnFields: []string{"canonical", "name", "comment", "ttl", "view"},
-	}
 	recordID, err := client.RecordCnameObject(d.Id()).Update(record, opts, nil)
 	if err != nil {
 		return fmt.Errorf("error updating Infoblox CNAME record: %s", err.Error())

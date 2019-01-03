@@ -89,7 +89,8 @@ func resourceInfobloxPTRRecordCreate(d *schema.ResourceData, meta interface{}) e
 func resourceInfobloxPTRRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	record, err := client.GetRecordPtr(d.Id(), nil)
+	opts := ptrOpts(d)
+	record, err := client.GetRecordPtr(d.Id(), opts)
 	if err != nil {
 		return handleReadError(d, "PTR", err)
 	}
@@ -122,7 +123,8 @@ func resourceInfobloxPTRRecordUpdate(d *schema.ResourceData, meta interface{}) e
 	client := meta.(*infoblox.Client)
 	record := url.Values{}
 
-	_, err := client.GetRecordPtr(d.Id(), nil)
+	opts := ptrOpts(d)
+	_, err := client.GetRecordPtr(d.Id(), opts)
 	if err != nil {
 		return fmt.Errorf("error finding infoblox PTR record: %s", err.Error())
 	}
@@ -141,7 +143,6 @@ func resourceInfobloxPTRRecordUpdate(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Updating Infoblox PTR record with configuration: %#v", record)
 
-	opts := ptrOpts(d)
 	recordID, err := client.RecordPtrObject(d.Id()).Update(record, opts, nil)
 	if err != nil {
 		return fmt.Errorf("error updating Infoblox PTR record: %s", err.Error())
