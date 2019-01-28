@@ -73,7 +73,10 @@ func resourceInfobloxAAAARecordCreate(d *schema.ResourceData, meta interface{}) 
 func resourceInfobloxAAAARecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	record, err := client.GetRecordAAAA(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"ipv6addr", "name", "comment", "ttl", "view"},
+	}
+	record, err := client.GetRecordAAAA(d.Id(), opts)
 	if err != nil {
 		return handleReadError(d, "AAAA", err)
 	}
@@ -97,7 +100,10 @@ func resourceInfobloxAAAARecordRead(d *schema.ResourceData, meta interface{}) er
 func resourceInfobloxAAAARecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	_, err := client.GetRecordAAAA(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"ipv6addr", "name", "comment", "ttl", "view"},
+	}
+	_, err := client.GetRecordAAAA(d.Id(), opts)
 	if err != nil {
 		return fmt.Errorf("error finding infoblox AAAA record: %s", err.Error())
 	}
@@ -109,9 +115,6 @@ func resourceInfobloxAAAARecordUpdate(d *schema.ResourceData, meta interface{}) 
 
 	log.Printf("[DEBUG] Updating Infoblox AAAA record with configuration: %#v", record)
 
-	opts := &infoblox.Options{
-		ReturnFields: []string{"ipv6addr", "name", "comment", "ttl", "view"},
-	}
 	recordID, err := client.RecordAAAAObject(d.Id()).Update(record, opts, nil)
 	if err != nil {
 		return fmt.Errorf("error updating Infoblox AAAA record: %s", err.Error())

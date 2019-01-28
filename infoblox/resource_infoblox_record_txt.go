@@ -73,7 +73,10 @@ func resourceInfobloxTXTRecordCreate(d *schema.ResourceData, meta interface{}) e
 func resourceInfobloxTXTRecordRead(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	record, err := client.GetRecordTxt(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"name", "text", "comment", "ttl", "view"},
+	}
+	record, err := client.GetRecordTxt(d.Id(), opts)
 	if err != nil {
 		return handleReadError(d, "TXT", err)
 	}
@@ -97,7 +100,10 @@ func resourceInfobloxTXTRecordRead(d *schema.ResourceData, meta interface{}) err
 func resourceInfobloxTXTRecordUpdate(d *schema.ResourceData, meta interface{}) error {
 	client := meta.(*infoblox.Client)
 
-	_, err := client.GetRecordTxt(d.Id(), nil)
+	opts := &infoblox.Options{
+		ReturnFields: []string{"name", "text", "comment", "ttl", "view"},
+	}
+	_, err := client.GetRecordTxt(d.Id(), opts)
 	if err != nil {
 		return fmt.Errorf("error finding infoblox TXT record: %s", err.Error())
 	}
@@ -109,9 +115,6 @@ func resourceInfobloxTXTRecordUpdate(d *schema.ResourceData, meta interface{}) e
 
 	log.Printf("[DEBUG] Updating Infoblox TXT record with configuration: %#v", record)
 
-	opts := &infoblox.Options{
-		ReturnFields: []string{"name", "text", "comment", "ttl", "view"},
-	}
 	recordID, err := client.RecordTxtObject(d.Id()).Update(record, opts, nil)
 	if err != nil {
 		return fmt.Errorf("error updating Infoblox TXT record: %s", err.Error())
