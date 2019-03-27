@@ -13,11 +13,18 @@ import (
 func hostIPv4Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"address": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:             schema.TypeString,
+			Optional:         true,
+			Computed:         true,
+			DiffSuppressFunc: suppressIfAddressIsOneOf(),
 		},
 		"configure_for_dhcp": {
 			Type:     schema.TypeBool,
+			Optional: true,
+		},
+		"function": {
+			ForceNew: true,
+			Type:     schema.TypeString,
 			Optional: true,
 		},
 		"mac": {
@@ -31,17 +38,35 @@ func hostIPv4Schema() map[string]*schema.Schema {
 func hostIPv6Schema() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
 		"address": {
-			Type:     schema.TypeString,
-			Required: true,
+			Type:             schema.TypeString,
+			Optional:         true,
+			Computed:         true,
+			DiffSuppressFunc: suppressIfAddressIsOneOf(),
 		},
 		"configure_for_dhcp": {
 			Type:     schema.TypeBool,
 			Optional: true,
 		},
+		"function": {
+			Type:     schema.TypeString,
+			Optional: true,
+			ForceNew: true,
+		},
 		"mac": {
 			Type:     schema.TypeString,
 			Optional: true,
 		},
+	}
+}
+
+func suppressIfAddressIsOneOf() schema.SchemaDiffSuppressFunc {
+	return func(k string, old string, new string, d *schema.ResourceData) bool {
+		switch {
+		case new == "" && old != "":
+			return true
+		default:
+			return false
+		}
 	}
 }
 
@@ -98,7 +123,12 @@ func ipv4sFromList(ipv4s []interface{}) []infoblox.HostIpv4Addr {
 		ipMap := v.(map[string]interface{})
 		i := infoblox.HostIpv4Addr{}
 
-		i.Ipv4Addr = ipMap["address"].(string)
+		switch {
+		case ipMap["address"].(string) != "":
+			i.Ipv4Addr = ipMap["address"].(string)
+		case ipMap["function"].(string) != "":
+			i.Ipv4Addr = ipMap["function"].(string)
+		}
 
 		if val, ok := ipMap["configure_for_dhcp"]; ok {
 			i.ConfigureForDHCP = val.(bool)
@@ -119,7 +149,12 @@ func ipv6sFromList(ipv6s []interface{}) []infoblox.HostIpv6Addr {
 		ipMap := v.(map[string]interface{})
 		i := infoblox.HostIpv6Addr{}
 
-		i.Ipv6Addr = ipMap["address"].(string)
+		switch {
+		case ipMap["address"].(string) != "":
+			i.Ipv6Addr = ipMap["address"].(string)
+		case ipMap["function"].(string) != "":
+			i.Ipv6Addr = ipMap["function"].(string)
+		}
 
 		if val, ok := ipMap["configure_for_dhcp"]; ok {
 			i.ConfigureForDHCP = val.(bool)
@@ -216,17 +251,21 @@ func resourceInfobloxHostRecordRead(d *schema.ResourceData, meta interface{}) er
 		var result []interface{}
 
 		for _, v := range record.Ipv4Addrs {
-			i := make(map[string]interface{})
+			for _, Ipv4Addr := range d.Get("ipv4addr").([]interface{}) {
+				i := make(map[string]interface{})
 
-			i["address"] = v.Ipv4Addr
-			if &v.ConfigureForDHCP != nil {
-				i["configure_for_dhcp"] = v.ConfigureForDHCP
+				i["address"] = v.Ipv4Addr
+				if &v.ConfigureForDHCP != nil {
+					i["configure_for_dhcp"] = v.ConfigureForDHCP
+				}
+				if &v.MAC != nil {
+					i["mac"] = v.MAC
+				}
+				if Ipv4Addr.(map[string]interface{})["function"] != "" {
+					i["function"] = Ipv4Addr.(map[string]interface{})["function"]
+				}
+				result = append(result, i)
 			}
-			if &v.MAC != nil {
-				i["mac"] = v.MAC
-			}
-
-			result = append(result, i)
 		}
 
 		d.Set("ipv4addr", result)
@@ -235,17 +274,22 @@ func resourceInfobloxHostRecordRead(d *schema.ResourceData, meta interface{}) er
 		var result []interface{}
 
 		for _, v := range record.Ipv6Addrs {
-			i := make(map[string]interface{})
+			for _, Ipv6Addr := range d.Get("ipv6addr").([]interface{}) {
+				i := make(map[string]interface{})
 
-			i["address"] = v.Ipv6Addr
-			if &v.ConfigureForDHCP != nil {
-				i["configure_for_dhcp"] = v.ConfigureForDHCP
-			}
-			if &v.MAC != nil {
-				i["mac"] = v.MAC
-			}
+				i["address"] = v.Ipv6Addr
+				if &v.ConfigureForDHCP != nil {
+					i["configure_for_dhcp"] = v.ConfigureForDHCP
+				}
+				if &v.MAC != nil {
+					i["mac"] = v.MAC
+				}
+				if Ipv6Addr.(map[string]interface{})["address"] == v.Ipv6Addr {
+					i["function"] = Ipv6Addr.(map[string]interface{})["function"]
+				}
 
-			result = append(result, i)
+				result = append(result, i)
+			}
 		}
 		d.Set("ipv6addr", result)
 	}

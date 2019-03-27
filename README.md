@@ -47,7 +47,7 @@ Provides an Infoblox Host record resource.
 
 ```hcl
 resource "infoblox_record_host" "host" {
-  name              = "terraformhost.platform.test-aib.pri"
+  name              = "terraformhost.platform1.test-aib.pri"
   configure_for_dns = false
 
   ipv4addr {
@@ -56,6 +56,23 @@ resource "infoblox_record_host" "host" {
 
   ipv4addr {
     address            = "10.89.130.31"
+    configure_for_dhcp = true
+    mac                = "01-23-45-67-89-10"
+  }
+}
+```
+
+```hcl
+resource "infoblox_record_host" "host" {
+  name              = "terraformhost.platform2.test-aib.pri"
+  configure_for_dns = false
+
+  ipv4addr {
+    function = "func:nextavailableip:10.89.130.30-10.89.130.39"
+  }
+
+  ipv4addr {
+    function           = "func:nextavailableip:10.89.130.30-10.89.130.39"
     configure_for_dhcp = true
     mac                = "01-23-45-67-89-10"
   }
@@ -74,14 +91,28 @@ resource "infoblox_record_host" "host" {
 
 ### Ipv4 options
 
-* `address` - (Required) The IPv4 address of the object
+* `address` - (Optional) **Note: If address and function both are provided, address is taken!** The IPv4 address of the object
 * `configure_for_dhcp` - (Boolean, Optional) Specifies whether the IPv4 address object should be configured for DHCP
+* `function` - (Optional) **Note: If address and function both are provided, address is taken!** Supports following syntax:
+ * Using a network or range WAPI reference:
+   * func:nextavailableip:< reference >
+ * Using a network lookup (if the view is not specified, the default view will be used):
+   * func:nextavailableip:< network >[,< network view >]
+ * Using a range lookup (if the view is not specified, the default view will be used):
+   * func:nextavailableip:< start_addr-end_addr >[,< network view >]
 * `mac` - (Optional) The MAC address of the resource
 
 ### Ipv6 options
 
-* `address` - (Required) The IPv6 address of the object
+* `address` - (Required) **Note: If address and function both are provided, address is taken!** The IPv6 address of the object
 * `configure_for_dhcp` - (Boolean, Optional) Specifies whether the IPv4 address object should be configured for DHCP
+* `function` - (Optional) **Note: If address and function both are provided, address is taken!** Supports following syntax:
+ * Using a network or range WAPI reference:
+   * func:nextavailableip:< reference >
+ * Using a network lookup (if the view is not specified, the default view will be used):
+   * func:nextavailableip:< network >[,< network view >]
+ * Using a range lookup (if the view is not specified, the default view will be used):
+   * func:nextavailableip:< start_addr-end_addr >[,< network view >]
 * `mac` - (Optional) The MAC address of the resource
 
 # infoblox\_record\_a
@@ -355,4 +386,3 @@ The following attributes are exported:
 * `name` - The name of the record
 * `type` - The type of the record
 * `ttl` - The TTL of the record
-
