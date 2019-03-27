@@ -175,6 +175,19 @@ func resourceInfobloxHostRecordCreate(d *schema.ResourceData, meta interface{}) 
 		return fmt.Errorf("error creating infoblox Host record: %s", err.Error())
 	}
 
+	grids, err := client.GetGrids()
+	if err != nil {
+		return fmt.Errorf("error getting grids: %s", err.Error())
+	}
+
+	for _, grid := range grids {
+		gridObject := client.GridObject(grid.Ref)
+		err = gridObject.RestartServicesForGrid("SIMULTANEOUSLY", "RESTART_IF_NEEDED", "ALL")
+		if err != nil {
+			return fmt.Errorf("error restarting services after deletion: %s", err.Error())
+		}
+	}
+
 	d.SetId(recordID)
 	log.Printf("[INFO] Infoblox Host record created with ID: %s", d.Id())
 
@@ -292,6 +305,19 @@ func resourceInfobloxHostRecordDelete(d *schema.ResourceData, meta interface{}) 
 	err = client.RecordHostObject(d.Id()).Delete(nil)
 	if err != nil {
 		return fmt.Errorf("error deleting Infoblox Host record: %s", err.Error())
+	}
+
+	grids, err := client.GetGrids()
+	if err != nil {
+		return fmt.Errorf("error getting grid: %s", err.Error())
+	}
+
+	for _, grid := range grids {
+		gridObject := client.GridObject(grid.Ref)
+		err = gridObject.RestartServicesForGrid("SIMULTANEOUSLY", "RESTART_IF_NEEDED", "ALL")
+		if err != nil {
+			return fmt.Errorf("error restarting services after deletion: %s", err.Error())
+		}
 	}
 
 	return nil
