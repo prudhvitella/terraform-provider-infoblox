@@ -47,7 +47,7 @@ Provides an Infoblox Host record resource.
 
 ```hcl
 resource "infoblox_record_host" "host" {
-  name              = "terraformhost.platform.test-aib.pri"
+  name              = "hostrecord.my.lan"
   configure_for_dns = false
 
   ipv4addr {
@@ -91,9 +91,21 @@ Provides an Infoblox A record resource.
 ## Example Usage
 
 ```hcl
-resource "infoblox_record_a" "web" {
+# Creating an A record with a given IP
+resource "infoblox_record_a" "fixed_ip" {
   address = "10.1.2.3"
   name    = "some.fqdn.lan"
+
+  comment = "ipv4 address for Acme web server"
+  ttl     = 3600
+  view    = "default"
+}
+
+# Dynamically assigning the next avilable IP address
+# in a network
+resource "infoblox_record_a" "next_available_ip" {
+  cidr = "10.0.0.0/24"
+  name = "some.fqdn.lan"
 
   comment = "ipv4 address for Acme web server"
   ttl     = 3600
@@ -105,7 +117,8 @@ resource "infoblox_record_a" "web" {
 
 The following arguments are supported:
 
-* `address` - (Required) The IPv4 address of the record
+* `cidr` - (Required, conflicts with address) The CIDR notation for an Infoblox network -- cidr or address must be set
+* `address` - (Required, conflicts with cidr) The IPv4 address of the record -- cidr or address must be set
 * `name` - (Required) The FQDN of the record
 * `comment` - (Optional) The comment for the record
 * `ttl` - (Integer, Optional) The TTL of the record
@@ -249,6 +262,10 @@ The following arguments are supported:
 
 Queries the next available IP address from a network and returns it in a computed variable
 that can be used by the infoblox_record resource.
+
+When creating an A record it may make more sense to pass the network cidr into it directly
+rather than relying on an `infoblox_ip` resource, especially when creating more than one at
+a time.
 
 ## Example Usage
 
