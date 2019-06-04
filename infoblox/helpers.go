@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/fanatic/go-infoblox"
+	infoblox "github.com/fanatic/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -82,6 +82,34 @@ func getMapValueAsString(mymap map[string]interface{}, val string) string {
 	}
 
 	return ""
+}
+
+func nextAvailableIP(client *infoblox.Client, cidr string) (string, error) {
+	var result string
+	var err error
+	var ou map[string]interface{}
+
+	network, err := getNetworks(client, cidr)
+
+	if err != nil {
+		if strings.Contains(err.Error(), "Authorization Required") {
+			return "", fmt.Errorf("[ERROR] Authentication Error, Please check your username/password ")
+		}
+	}
+
+	if len(network) == 0 {
+		err = fmt.Errorf("[ERROR] Empty response from client.Network().find. Is %s a valid network?", cidr)
+	}
+
+	if err == nil {
+		ou, err = client.NetworkObject(network[0]["_ref"].(string)).NextAvailableIP(1, nil)
+		result = getMapValueAsString(ou, "ips")
+		if result == "" {
+			err = fmt.Errorf("[ERROR] Unable to determine IP address from response")
+		}
+	}
+
+	return result, err
 }
 
 // Validates that either 'cidr' or 'ip_range' terraform argument is set.

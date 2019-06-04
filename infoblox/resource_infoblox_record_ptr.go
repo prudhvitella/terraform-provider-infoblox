@@ -45,6 +45,7 @@ func infobloxRecordPTR() *schema.Resource {
 			"view": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "default",
 			},
 		},
 	}

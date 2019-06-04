@@ -7,6 +7,7 @@ import (
 
 	infoblox "github.com/fanatic/go-infoblox"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 )
 
 func infobloxRecordA() *schema.Resource {
@@ -17,11 +18,29 @@ func infobloxRecordA() *schema.Resource {
 		Delete: resourceInfobloxARecordDelete,
 
 		Schema: map[string]*schema.Schema{
-			// TODO: validate that address is in IPv4 format.
 			"address": &schema.Schema{
-				Type:     schema.TypeString,
-				Required: true,
-				ForceNew: true,
+				Computed:      true,
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      false,
+				ConflictsWith: []string{"cidr"},
+				ValidateFunc:  validation.SingleIP(),
+
+				// Because setting a cidr will implicitly fill the address in state
+				// we suppress the diff for this field if the cidr attribute is set.
+				DiffSuppressFunc: func(k, old, new string, d *schema.ResourceData) bool {
+					if d.Get("cidr").(string) != "" && old != "" {
+						return true
+					}
+					return false
+				},
+			},
+			"cidr": &schema.Schema{
+				Type:          schema.TypeString,
+				Optional:      true,
+				ForceNew:      true,
+				ConflictsWith: []string{"address"},
+				ValidateFunc:  validation.CIDRNetwork(0, 32),
 			},
 			"name": &schema.Schema{
 				Type:     schema.TypeString,
@@ -31,6 +50,7 @@ func infobloxRecordA() *schema.Resource {
 			"comment": &schema.Schema{
 				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "",
 			},
 			"ttl": &schema.Schema{
 				Type:     schema.TypeInt,
@@ -76,14 +96,38 @@ func resourceInfobloxARecordCreate(d *schema.ResourceData, meta interface{}) err
 	client := meta.(*infoblox.Client)
 
 	record := url.Values{}
-	aRecordObject := aObjectFromAttributes(d, false)
+	aObject := infoblox.RecordAObject{}
 
-	log.Printf("[DEBUG] Creating Infoblox A record with configuration: %#v", aRecordObject)
+	var address string
+	var err error
+	if v, ok := d.GetOk("address"); ok {
+		address = v.(string)
+	}
+	if v, ok := d.GetOk("cidr"); ok {
+		address, err = nextAvailableIP(client, v.(string))
+	}
+	if err != nil {
+		return err
+	}
+	aObject.Ipv4Addr = address
+
+	aObject.Name = d.Get("name").(string)
+	if attr, ok := d.GetOk("comment"); ok {
+		aObject.Comment = attr.(string)
+	}
+	if attr, ok := d.GetOk("ttl"); ok {
+		aObject.Ttl = attr.(int)
+	}
+	if attr, ok := d.GetOk("view"); ok {
+		aObject.View = attr.(string)
+	}
+
+	log.Printf("[DEBUG] Creating Infoblox A record with configuration: %#v", aObject)
 
 	opts := &infoblox.Options{
 		ReturnFields: []string{"ipv4addr", "name", "comment", "ttl", "view"},
 	}
-	recordID, err := client.RecordA().Create(record, opts, aRecordObject)
+	recordID, err := client.RecordA().Create(record, opts, aObject)
 	if err != nil {
 		return fmt.Errorf("error creating infoblox A record: %s", err.Error())
 	}

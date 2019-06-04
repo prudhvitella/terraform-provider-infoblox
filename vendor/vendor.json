@@ -594,18 +594,6 @@
 			"revisionTime": "2017-08-16T17:38:16Z"
 		},
 		{
-			"checksumSHA1": "aq6xeiFQsEmEZ5KwdLSwT7h9A/w=",
-			"path": "github.com/prudhvitella/terraform-provider-infoblox",
-			"revision": "f0facf84e13dc9086a0ee8a535dcfd41c2c899d4",
-			"revisionTime": "2018-11-08T11:05:57Z"
-		},
-		{
-			"checksumSHA1": "tH1nSqrdeabNlB+Gf8g+rm7lX7w=",
-			"path": "github.com/prudhvitella/terraform-provider-infoblox/infoblox",
-			"revision": "f0facf84e13dc9086a0ee8a535dcfd41c2c899d4",
-			"revisionTime": "2018-11-08T11:05:57Z"
-		},
-		{
 			"checksumSHA1": "zmC8/3V4ls53DJlNTKDZwPSC/dA=",
 			"path": "github.com/satori/go.uuid",
 			"revision": "5bf94b69c6b68ee1b541973bb8e1144db23a194b",
