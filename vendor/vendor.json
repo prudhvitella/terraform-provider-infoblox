@@ -241,6 +241,12 @@
 			"revisionTime": "2017-08-16T00:15:14Z"
 		},
 		{
+			"checksumSHA1": "upHrlWYZqZXbu7SNyDNJTLIR81A=",
+			"path": "github.com/googleapis/gax-go",
+			"revision": "bd5b16380fd03dc758d11cef74ba2e3bc8b0e8c2",
+			"revisionTime": "2019-05-13T18:38:25Z"
+		},
+		{
 			"checksumSHA1": "cdOCt0Yb+hdErz8NAQqayxPmRsY=",
 			"path": "github.com/hashicorp/errwrap",
 			"revision": "7554cd9344cec97297fa6649b055a8c98c2a1e55",
@@ -350,10 +356,10 @@
 			"revisionTime": "2017-05-05T08:58:37Z"
 		},
 		{
-			"checksumSHA1": "M09yxoBoCEtG7EcHR8aEWLzMMJc=",
+			"checksumSHA1": "4DLRNUo89ZrRLG9FlgGbxSh7uMs=",
 			"path": "github.com/hashicorp/hil",
-			"revision": "fa9f258a92500514cc8e9c67020487709df92432",
-			"revisionTime": "2017-02-13T18:49:38Z"
+			"revision": "97b3a9cdfa9349086cfad7ea2fe3165bfe3cbf63",
+			"revisionTime": "2019-02-12T13:22:31Z"
 		},
 		{
 			"checksumSHA1": "0S0KeBcfqVFYBPeZkuJ4fhQ5mCA=",
@@ -516,10 +522,10 @@
 			"revisionTime": "2016-07-20T23:31:40Z"
 		},
 		{
-			"checksumSHA1": "0ZrwvB6KoGPj2PoDNSEJwxQ6Mog=",
+			"checksumSHA1": "blwbl9vPvRLtL5QlZgfpLvsFiZ4=",
 			"path": "github.com/jmespath/go-jmespath",
-			"revision": "bd40a432e4c76585ef6b72d3fd96fb9b6dc7b68d",
-			"revisionTime": "2016-08-03T19:07:31Z"
+			"revision": "c2b33e8439af944379acbdd9c3a5fe0bc44bd8a5",
+			"revisionTime": "2018-02-06T20:15:40Z"
 		},
 		{
 			"checksumSHA1": "1otkAg+0Q9NksNSuQ3ijCW0xHxE=",
@@ -548,10 +554,10 @@
 			"revisionTime": "2016-12-03T19:45:07Z"
 		},
 		{
-			"checksumSHA1": "6TBW88DSxRHf4WvOC9K5ilBZx/8=",
+			"checksumSHA1": "sOKKo6gC91+8G8bEsg4Kob0k61g=",
 			"path": "github.com/mitchellh/go-testing-interface",
-			"revision": "9a441910b16872f7b8283682619b3761a9aa2222",
-			"revisionTime": "2017-07-30T05:09:07Z"
+			"revision": "6d0b8010fcc857872e42fc6c931227569016843c",
+			"revisionTime": "2018-08-26T20:35:19Z"
 		},
 		{
 			"checksumSHA1": "tWUjKyFOGJtYExocPWVYiXBYsfE=",
@@ -570,6 +576,12 @@
 			"path": "github.com/mitchellh/reflectwalk",
 			"revision": "63d60e9d0dbc60cf9164e6510889b0db6683d98c",
 			"revisionTime": "2017-07-26T20:21:17Z"
+		},
+		{
+			"checksumSHA1": "nf3UoPNBIut7BL9nWE8Fw2X2j+Q=",
+			"path": "github.com/oklog/run",
+			"revision": "6934b124db28979da51d3470dadfa34d73d72652",
+			"revisionTime": "2018-03-08T00:51:04Z"
 		},
 		{
 			"checksumSHA1": "6OEUkwOM0qgI6YxR+BDEn6YMvpU=",
@@ -606,10 +618,10 @@
 			"revisionTime": "2017-03-21T23:07:31Z"
 		},
 		{
-			"checksumSHA1": "z2kAtVle4NFV2OExI85fZoTcsI4=",
+			"checksumSHA1": "vsCV3YCxIuO3FjuggNxJTTTDkwU=",
 			"path": "github.com/ulikunitz/xz",
-			"revision": "0c6b41e72360850ca4f98dc341fd999726ea007f",
-			"revisionTime": "2017-06-05T21:53:11Z"
+			"revision": "6f934d456d51e742b4eeab20d925a827ef22320a",
+			"revisionTime": "2019-02-20T20:51:30Z"
 		},
 		{
 			"checksumSHA1": "vjnTkzNrMs5Xj6so/fq0mQ6dT1c=",
@@ -620,14 +632,20 @@
 		{
 			"checksumSHA1": "m0pm57ASBK/CTdmC0ppRHO17mBs=",
 			"path": "github.com/ulikunitz/xz/internal/xlog",
-			"revision": "0c6b41e72360850ca4f98dc341fd999726ea007f",
-			"revisionTime": "2017-06-05T21:53:11Z"
+			"revision": "6f934d456d51e742b4eeab20d925a827ef22320a",
+			"revisionTime": "2019-02-20T20:51:30Z"
 		},
 		{
 			"checksumSHA1": "2vZw6zc8xuNlyVz2QKvdlNSZQ1U=",
 			"path": "github.com/ulikunitz/xz/lzma",
 			"revision": "0c6b41e72360850ca4f98dc341fd999726ea007f",
 			"revisionTime": "2017-06-05T21:53:11Z"
+		},
+		{
+			"checksumSHA1": "z+YgC5w2KkepPdhg631j1cUQl6s=",
+			"path": "go.opencensus.io/plugin/ochttp",
+			"revision": "a092815c29e3a8fb79dfa966ad048ed20f1f8c01",
+			"revisionTime": "2019-06-04T18:45:50Z"
 		},
 		{
 			"checksumSHA1": "UWjVYmoHlIfHzVIskELHiJQtMOI=",
